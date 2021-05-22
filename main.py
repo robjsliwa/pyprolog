@@ -1,86 +1,120 @@
+from functools import reduce
+
+
+class Variable:
+  def __init__(self, name):
+    self.name = name
+
+  def match(self, other):
+    bindings = dict()
+    if self != other:
+      bindings[self] = other
+    return bindings
+
+  def substitute(self, bindings):
+    value = bindings.get(self, None)
+    if value is not None:
+      return value.substitute(bindings)
+    return self
+
+  def __str__(self):
+    return str(self.name)
+  
+  def __repr__(self):
+    return str(self)
+
+
+def merge_bindings(bindings1, bindings2):
+  if bindings1 is None or bindings2 is None:
+    return None
+
+  bindings = dict()
+
+  bindings = { **bindings1 }
+
+  for variable, value in bindings2.items():
+    if variable in bindings:
+      other = bindings[variable]
+      sub  = other.match(value)
+
+      if sub is not None:
+        for var, val in sub.items():
+          bindings[var] = val
+      else:
+        return None
+    else:
+      bindings[variable] = value
+  
+  return bindings
+
 class Term:
   def __init__(self, pred, *args):
     self.pred = pred
     self.args = list(args)
+  
+  def match(self, other):
+    if isinstance(other, Term):
+      if self.pred != other.pred or \
+        len(self.args) != len(other.args):
+        return None
 
-  def __repr__(self):
+      m = list(
+            map(
+              (lambda arg1, arg2: arg1.match(arg2)),
+              self.args,
+              other.args
+            )
+      )
+
+      return reduce(merge_bindings, [{}] + m)
+
+    return other.match(self)
+  
+  def substitute(self, bindings):
+    return Term(self.pred, *map(
+      (lambda arg: arg.substitute(bindings)),
+      self.args
+    ))
+
+  def query(self, db):
+    pass
+
+  def __str__(self):
     if len(self.args) == 0: return f'{self.pred}'
-    args = ', '.join(self.args)
+    args = ', '.join(map(str, self.args))
     return f'{self.pred}({args})'
 
-  def __eq__(self, other):
-    return self.pred == other.pred and self.args == other.args
+  def __repr__(self):
+    return str(self)
 
+class TRUE(Term):
+  def __init__(self):
+    super().__init__(TRUE)
+
+  def substitute(self, bindings):
+    return self
+
+  def query(self, db):
+    pass
 
 class Rule:
-  def __init__(self, head, *tail):
+  def __init__(self, head, tail):
     self.head = head
-    self.tail = list(tail)
-
-  def __repr__(self):
-    if len(self.tail) == 0: return f'{self.head}'
-    preds = ', '.join(map(str, self.tail))
-    return f'{self.head} :- {preds}'
+    self.tail = tail
 
 
-def head(lst):
-  return lst[:1][0]
+# tests
 
-def tail(lst):
-  return lst[1:]
+known_term = Term('father_child', Term('eric'), Term('thorne'))
 
-def append(lst1, lst2):
-  return [*lst1, *lst2]
+x = Variable('X')
 
-def empty(lst):
-  return len(lst) == 0
+goal = Term('father_child', Term('eric'), x)
 
-def match(termA, termB):
-  return termA == termB
+bindings = goal.match(known_term)
 
-class Interpreter:
-  def __init__(self, rules):
-    self.rules = rules
+print(f'Bindings objext is a Map: {bindings}')
 
-  def solve(self, query):
-    print(f'QUERY: {query}')
-    
-    if not empty(query):
-      for rule in self.rules:
-        if match(rule.head, head(query)):
-          self.solve(append(rule.tail, tail(query)))
-    else:
-      print('yes')
-    
+value = goal.substitute(bindings)
 
-
-
-# a = Term('boy', 'bill')
-# b = Term('mother', 'alice', 'bill')
-
-# print(a)
-# print(b)
-
-# c = Rule(Term('mother', 'X', 'Y'), Term('mother', 'X', 'Y'), Term('boy', 'X'))
-
-# print(c)
-
-# d = Rule(Term('cat', 'tom'))
-
-# print(d)
-
-# test rules
-r1 = Rule(Term('a'), Term('b'), Term('c'), Term('d'))
-r2 = Rule(Term('a'), Term('e'), Term('f'))
-r3 = Rule(Term('b'), Term('f'))
-r4 = Rule(Term('e'))
-r5 = Rule(Term('f'))
-r6 = Rule(Term('a'), Term('f'))
-
-db = [r1, r2, r3, r4, r5, r6]
-
-i = Interpreter(db)
-
-q = [Term('a'), Term('e')]
-
-i.solve(q)
+print(f'Goal with substituted variables: {value}')
