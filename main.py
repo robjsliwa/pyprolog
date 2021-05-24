@@ -103,6 +103,53 @@ class Rule:
     self.tail = tail
 
 
+class Conjunction(Term):
+  def __init__(self, args):
+    super().__init__(None, *args)
+
+  def query(self, db):
+    def solutions(index, bindings):
+      if index >= (self.arguments):
+        yield self.substitue(bindings)
+      else:
+        arg = self.args[index]
+        for item in db.query(arg.substitue(bindings)):
+          unified = merge_bindings(
+            arg.match(item),
+            bindings
+          )
+          if unified is not None:
+            yield solutions(index + 1, unified)
+    
+    yield solutions(0, {})
+
+  def substitute(self, bindings):
+    return Conjunction(
+      map(
+        (lambda arg: arg.substitue(bindings)),
+        self.args
+      )
+    )
+
+
+class Database:
+  def __init__(self, rules):
+    self.rules
+
+  def query(self, goal):
+    for rule in self.rules:
+      match = rule.head.match(goal)
+      if match is not None:
+        head = rule.head.substitute(match)
+        body = rule.body.substitute(match)
+        for item in body.query(self):
+          yield head.substitute(body.match(item))
+
+
+# Parser
+
+
+
 # tests
 
 known_term = Term('father_child', Term('eric'), Term('thorne'))
