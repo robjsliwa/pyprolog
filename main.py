@@ -149,9 +149,12 @@ class Database:
 
 # Parser
 
+TOKEN_REGEX = r"[A-Za-z0-9_]+|:\-|[()\.,]"
+ATOM_NAME_REGEX = r"^[A-Za-z0-9_]+$"
+VARIABLE_REGEX = r"^[A-Z_][A-Za-z0-9_]*$"
+
 def lexer(text):
-  token_regex = '[A-Za-z_]+|:\-|[()\.,]'
-  matches = re.findall(token_regex, text)
+  matches = re.findall(TOKEN_REGEX, text)
 
   for token in matches:
     yield token
@@ -165,6 +168,104 @@ def parser(tokens):
   def next():
     next = tokens.next()
     current = next
+    is_done = next is None
+    
+  def parse_atom():
+    name = current
+    if re.match(ATOM_NAME_REGEX, name) is None:
+      raise Exception(f'Bad atom name: {name}')
+      
+    next()
+    return name
+    
+  def parse_term():
+    if current == '(':
+      next()
+      args = []
+      while current != ')':
+        args.append(parseTerm())
+        if current != ',' and current != ')':
+          raise Exception(f'Expecter , or ) in term but got {current}')
+        if current == ',':
+          next()
+      
+      next()
+      return Conjunction(args)
+    
+    predicate = parse_atom()
+    if re.match(VARIABLE_REGEX, predicate) is not None:
+      if predicate == '_':
+        return Variable('_')
+      
+      variable = scope.get(predicate, None)
+      if variable is None:
+        variable = Variable(predicate)
+        scope[predicate] = variable
+      return variable
+      
+    if current != '(':
+      return Term(predicate)
+      
+    next()
+    args = []
+    while current != ')':
+      args.append(parse_term())
+      if current != ',' and current != ')':
+        raise Exception(f'Expected , or ) in term but got {current}')
+      
+      if current == ',':
+        next()
+    
+    next()
+    return Term(predicate, *args)
+    
+  def parse_rule():
+    head = parse_term()
+    
+    if current == '.':
+      next()
+      return Rule(head, TRUE())
+      
+    if current != ':-':
+      raise Exception(f'Expected :- in rule but got {current}')
+      
+    next()
+    args = []
+    while current != '.':
+      args.append(parse_term())
+      if current != ',' and current != '.':
+        raise Exception(f'Expected , or ) in term but got {current}')
+        
+      if current == ',':
+        next()
+        
+    
+    next()
+    body = None
+    if len(args) == 1:
+      body = args[0]
+    else:
+      body = Conjunction(args)
+      
+    return Rule(head, body)
+    
+  def parse_rules():
+    rules = []
+    while not done:
+      scope = {}
+      rules.append(parse_rule())
+    return rules
+    
+  def term_parser():
+    scope = {}
+    return parse_term()
+    
+  next()
+  return {
+    'parse_rules': parse_rules,
+    'parse_term': term_parser
+  }
+  
 
 
 # tests
@@ -200,3 +301,26 @@ sibling(X, Y) :- parent_child(Z, X), parent_child(Z, Y).
 
 for token in lexer('mother_child(X, kristen)'):
   print(token)
+  
+
+# parser tests
+
+rules_text = '''
+mother_child(stephanie, thorne).
+mother_child(stephanie, kristen).
+mother_child(stephanie, felicia).
+'''
+
+rules = parser(lexer(rules_text))['parse_rules']()
+
+db = Database(rules)
+
+goal_text = 'mother_child(X, kristen)'
+
+goal = parser(lexer(goal_text))['parse_term']()
+
+x = goal.args[0]
+
+for item in db.query(goal):
+  print(item)
+  print(f'value of X = {goal.match(item).get(x)}')
