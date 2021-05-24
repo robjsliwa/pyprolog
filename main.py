@@ -1,3 +1,4 @@
+import re
 from functools import reduce
 
 
@@ -148,6 +149,22 @@ class Database:
 
 # Parser
 
+def lexer(text):
+  token_regex = '[A-Za-z_]+|:\-|[()\.,]'
+  matches = re.findall(token_regex, text)
+
+  for token in matches:
+    yield token
+
+
+def parser(tokens):
+  current = ''
+  is_done = False
+  scope = {}
+
+  def next():
+    next = tokens.next()
+    current = next
 
 
 # tests
@@ -165,3 +182,21 @@ print(f'Bindings objext is a Map: {bindings}')
 value = goal.substitute(bindings)
 
 print(f'Goal with substituted variables: {value}')
+
+sample_prolog = '''
+father_child(massimo, ridge).
+father_child(eric, thorne).
+father_child(thorne, alexandria).
+
+mother_child(stephanie, thorne).
+mother_child(stephanie, kristen).
+mother_child(stephanie, felicia).
+
+parent_child(X, Y) :- father_child(X, Y).
+parent_child(X, Y) :- mother_child(X, Y).
+
+sibling(X, Y) :- parent_child(Z, X), parent_child(Z, Y).
+'''
+
+for token in lexer('mother_child(X, kristen)'):
+  print(token)
