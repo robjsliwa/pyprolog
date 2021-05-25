@@ -78,7 +78,7 @@ class Term:
     ))
 
   def query(self, db):
-    pass
+    yield from db.query(self)
 
   def __str__(self):
     if len(self.args) == 0: return f'{self.pred}'
@@ -110,24 +110,24 @@ class Conjunction(Term):
 
   def query(self, db):
     def solutions(index, bindings):
-      if index >= (self.arguments):
-        yield self.substitue(bindings)
+      if index >= len(self.args):
+        yield self.substitute(bindings)
       else:
         arg = self.args[index]
-        for item in db.query(arg.substitue(bindings)):
+        for item in db.query(arg.substitute(bindings)):
           unified = merge_bindings(
             arg.match(item),
             bindings
           )
           if unified is not None:
-            yield solutions(index + 1, unified)
+            yield from solutions(index + 1, unified)
     
-    yield solutions(0, {})
+    yield from solutions(0, {})
 
   def substitute(self, bindings):
     return Conjunction(
       map(
-        (lambda arg: arg.substitue(bindings)),
+        (lambda arg: arg.substitute(bindings)),
         self.args
       )
     )
@@ -143,6 +143,7 @@ class Database:
       if match is not None:
         head = rule.head.substitute(match)
         body = rule.body.substitute(match)
+        # print(f'body: {body}')
         for item in body.query(self):
           yield head.substitute(body.match(item))
 
@@ -322,6 +323,137 @@ rules = parser(lexer(rules_text))['parse_rules']()
 db = Database(rules)
 
 goal_text = 'mother_child(X, kristen)'
+
+goal = parser(lexer(goal_text))['parse_term']()
+
+x = goal.args[0]
+
+for item in db.query(goal):
+  print(item)
+  print(f'value of X = {goal.match(item).get(x)}')
+
+
+# Einstein's puzzle
+
+print('Puzzle 1...')
+
+puzzle = '''
+exists(A, list(A, _, _, _, _)).
+exists(A, list(_, A, _, _, _)).
+exists(A, list(_, _, A, _, _)).
+exists(A, list(_, _, _, A, _)).
+exists(A, list(_, _, _, _, A)).
+
+rightOf(R, L, list(L, R, _, _, _)).
+rightOf(R, L, list(_, L, R, _, _)).
+rightOf(R, L, list(_, _, L, R, _)).
+rightOf(R, L, list(_, _, _, L, R)).
+
+middle(A, list(_, _, A, _, _)).
+
+first(A, list(A, _, _, _, _)).
+
+nextTo(A, B, list(B, A, _, _, _)).
+nextTo(A, B, list(_, B, A, _, _)).
+nextTo(A, B, list(_, _, B, A, _)).
+nextTo(A, B, list(_, _, _, B, A)).
+nextTo(A, B, list(A, B, _, _, _)).
+nextTo(A, B, list(_, A, B, _, _)).
+nextTo(A, B, list(_, _, A, B, _)).
+nextTo(A, B, list(_, _, _, A, B)).
+
+puzzle(Houses) :-
+    exists(house(red, english, _, _, _), Houses),
+    exists(house(_, spaniard, _, _, dog), Houses),
+    exists(house(green, _, coffee, _, _), Houses),
+    exists(house(_, ukrainian, tea, _, _), Houses),
+    rightOf(house(green, _, _, _, _), house(ivory, _, _, _, _), Houses),
+    exists(house(_, _, _, oldgold, snails), Houses),
+    exists(house(yellow, _, _, kools, _), Houses),
+    middle(house(_, _, milk, _, _), Houses),
+    first(house(_, norwegian, _, _, _), Houses),
+    nextTo(house(_, _, _, chesterfield, _), house(_, _, _, _, fox), Houses),
+    nextTo(house(_, _, _, kools, _),house(_, _, _, _, horse), Houses),
+    exists(house(_, _, orangejuice, luckystike, _), Houses),
+    exists(house(_, japanese, _, parliament, _), Houses),
+    nextTo(house(_, norwegian, _, _, _), house(blue, _, _, _, _), Houses),
+    exists(house(_, _, water, _, _), Houses),
+    exists(house(_, _, _, _, zebra), Houses).
+
+solution(WaterDrinker, ZebraOwner) :-
+    puzzle(Houses),
+    exists(house(_, WaterDrinker, water, _, _), Houses),
+    exists(house(_, ZebraOwner, _, _, zebra), Houses).
+'''
+
+rules = parser(lexer(puzzle))['parse_rules']()
+
+db = Database(rules)
+
+goal_text = 'solution(WaterDrinker, ZebraOwner)'
+
+goal = parser(lexer(goal_text))['parse_term']()
+
+x = goal.args[0]
+
+for item in db.query(goal):
+  print(item)
+  print(f'value of X = {goal.match(item).get(x)}')
+
+print('Puzzle 2...')
+
+puzzle = '''
+exists(A, list(A, _, _, _, _)).
+exists(A, list(_, A, _, _, _)).
+exists(A, list(_, _, A, _, _)).
+exists(A, list(_, _, _, A, _)).
+exists(A, list(_, _, _, _, A)).
+
+rightOf(R, L, list(L, R, _, _, _)).
+rightOf(R, L, list(_, L, R, _, _)).
+rightOf(R, L, list(_, _, L, R, _)).
+rightOf(R, L, list(_, _, _, L, R)).
+
+middle(A, list(_, _, A, _, _)).
+
+first(A, list(A, _, _, _, _)).
+
+nextTo(A, B, list(B, A, _, _, _)).
+nextTo(A, B, list(_, B, A, _, _)).
+nextTo(A, B, list(_, _, B, A, _)).
+nextTo(A, B, list(_, _, _, B, A)).
+nextTo(A, B, list(A, B, _, _, _)).
+nextTo(A, B, list(_, A, B, _, _)).
+nextTo(A, B, list(_, _, A, B, _)).
+nextTo(A, B, list(_, _, _, A, B)).
+
+puzzle(Houses) :-
+  exists(house(red, british, _, _, _), Houses),
+  exists(house(_, swedish, _, _, dog), Houses),
+  exists(house(green, _, coffee, _, _), Houses),
+  exists(house(_, danish, tea, _, _), Houses),
+  rightOf(house(white, _, _, _, _), house(green, _, _, _, _), Houses),
+  exists(house(_, _, _, pall_mall, bird), Houses),
+  exists(house(yellow, _, _, dunhill, _), Houses),
+  middle(house(_, _, milk, _, _), Houses),
+  first(house(_, norwegian, _, _, _), Houses),
+  nextTo(house(_, _, _, blend, _), house(_, _, _, _, cat), Houses),
+  nextTo(house(_, _, _, dunhill, _),house(_, _, _, _, horse), Houses),
+  exists(house(_, _, beer, bluemaster, _), Houses),
+  exists(house(_, german, _, prince, _), Houses),
+  nextTo(house(_, norwegian, _, _, _), house(blue, _, _, _, _), Houses),
+  nextTo(house(_, _, _, blend, _), house(_, _, water_, _, _), Houses).
+
+solution(FishOwner) :-
+  puzzle(Houses),
+  exists(house(_, FishOwner, _, _, fish), Houses).
+'''
+
+rules = parser(lexer(puzzle))['parse_rules']()
+
+db = Database(rules)
+
+goal_text = 'solution(FishOwner)'
 
 goal = parser(lexer(goal_text))['parse_term']()
 
