@@ -96,12 +96,12 @@ class TRUE(Term):
     return self
 
   def query(self, db):
-    pass
+    yield self
 
 class Rule:
-  def __init__(self, head, tail):
+  def __init__(self, head, body):
     self.head = head
-    self.tail = tail
+    self.body = body
 
 
 class Conjunction(Term):
@@ -135,7 +135,7 @@ class Conjunction(Term):
 
 class Database:
   def __init__(self, rules):
-    self.rules
+    self.rules = rules
 
   def query(self, goal):
     for rule in self.rules:
@@ -165,31 +165,35 @@ def parser(tokens):
   is_done = False
   scope = {}
 
-  def next():
-    next = tokens.next()
-    current = next
-    is_done = next is None
+  def advance():
+    try:
+      next_token = next(tokens)
+      nonlocal current
+      current = next_token
+      nonlocal is_done
+    except StopIteration:
+      is_done = True
     
   def parse_atom():
     name = current
     if re.match(ATOM_NAME_REGEX, name) is None:
       raise Exception(f'Bad atom name: {name}')
       
-    next()
+    advance()
     return name
     
   def parse_term():
     if current == '(':
-      next()
+      advance()
       args = []
       while current != ')':
-        args.append(parseTerm())
+        args.append(parse_term())
         if current != ',' and current != ')':
           raise Exception(f'Expecter , or ) in term but got {current}')
         if current == ',':
-          next()
+          advance()
       
-      next()
+      advance()
       return Conjunction(args)
     
     predicate = parse_atom()
@@ -206,7 +210,7 @@ def parser(tokens):
     if current != '(':
       return Term(predicate)
       
-    next()
+    advance()
     args = []
     while current != ')':
       args.append(parse_term())
@@ -214,22 +218,22 @@ def parser(tokens):
         raise Exception(f'Expected , or ) in term but got {current}')
       
       if current == ',':
-        next()
+        advance()
     
-    next()
+    advance()
     return Term(predicate, *args)
     
   def parse_rule():
     head = parse_term()
     
     if current == '.':
-      next()
+      advance()
       return Rule(head, TRUE())
       
     if current != ':-':
       raise Exception(f'Expected :- in rule but got {current}')
       
-    next()
+    advance()
     args = []
     while current != '.':
       args.append(parse_term())
@@ -237,10 +241,10 @@ def parser(tokens):
         raise Exception(f'Expected , or ) in term but got {current}')
         
       if current == ',':
-        next()
+        advance()
         
     
-    next()
+    advance()
     body = None
     if len(args) == 1:
       body = args[0]
@@ -251,16 +255,18 @@ def parser(tokens):
     
   def parse_rules():
     rules = []
-    while not done:
+    while not is_done:
+      nonlocal scope
       scope = {}
       rules.append(parse_rule())
     return rules
     
   def term_parser():
+    nonlocal scope
     scope = {}
     return parse_term()
     
-  next()
+  advance()
   return {
     'parse_rules': parse_rules,
     'parse_term': term_parser
