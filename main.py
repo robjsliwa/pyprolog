@@ -306,6 +306,20 @@ parent_child(X, Y) :- mother_child(X, Y).
 sibling(X, Y) :- parent_child(Z, X), parent_child(Z, Y).
 '''
 
+rules = parser(lexer(sample_prolog))['parse_rules']()
+
+db = Database(rules)
+
+goal_text = 'sibling(X, kristen)'
+
+goal = parser(lexer(goal_text))['parse_term']()
+
+x = goal.args[0]
+
+for item in db.query(goal):
+  print(item)
+  print(f'value of X = {goal.match(item).get(x)}')
+
 for token in lexer('mother_child(X, kristen)'):
   print(token)
   
