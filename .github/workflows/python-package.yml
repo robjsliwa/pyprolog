@@ -31,6 +31,7 @@ jobs:
         poetry install
     - name: Lint with flake8
       run: |
+        source $HOME/.poetry/env
         poetry run flake8
     - name: Test with pytest
       run: |
