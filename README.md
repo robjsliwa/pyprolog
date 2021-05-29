@@ -1,4 +1,4 @@
 # Simple Prolog Interpreter in Python
 
-This is based on the article: https://curiosity-driven.org/prolog-interpreter
+This is based on this [article](https://curiosity-driven.org/prolog-interpreter)
 
