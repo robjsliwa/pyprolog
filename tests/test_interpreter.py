@@ -11,6 +11,7 @@ def test_simple_rule_match():
     value = goal.substitute(bindings)
     assert str(value) == 'location(computer, office)'
 
+
 def test_lexer():
     results = [
         'location',
@@ -22,6 +23,7 @@ def test_lexer():
     ]
     for index, token in enumerate(lexer('location(X, office)')):
         assert token == results[index]
+
 
 def test_query_with_multiple_results():
     rules = '''
@@ -54,6 +56,7 @@ def test_query_with_multiple_results():
     for index, item in enumerate(runtime.execute(goal)):
         assert str(item) == expected_results[index]
         assert str(goal.match(item).get(x)) == expected_binding[index]
+
 
 def test_puzzle1():
     puzzle = '''
@@ -103,7 +106,7 @@ def test_puzzle1():
         puzzle(Houses),
         exists(house(_, WaterDrinker, water, _, _), Houses),
         exists(house(_, ZebraOwner, _, _, zebra), Houses).
-    '''
+    ''' # noqa
 
     rules = parser(lexer(puzzle))['parse_rules']()
 
@@ -122,6 +125,7 @@ def test_puzzle1():
     for index, item in enumerate(runtime.execute(goal)):
         assert str(item) == expected_results[index]
         assert str(goal.match(item).get(x)) == expected_bindings[index]
+
 
 def test_puzzle2():
     puzzle = '''
