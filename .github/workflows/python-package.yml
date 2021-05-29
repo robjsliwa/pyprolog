@@ -35,4 +35,5 @@ jobs:
         poetry run flake8
     - name: Test with pytest
       run: |
-        pytest
+        source $HOME/.poetry/env
+        poetry run  pytest --cov=prolog tests
