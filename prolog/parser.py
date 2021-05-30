@@ -14,91 +14,94 @@ def lexer(text):
         yield token
 
 
-def parser(tokens):
-    current = ''
-    is_done = False
-    scope = {}
+class Parser:
+    def __init__(self, tokens):
+        self._current = ''
+        self._is_done = False
+        self._scope = {}
+        self._tokens = tokens
+        self._advance()
 
-    def advance():
+    def _advance(self):
         try:
-            next_token = next(tokens)
-            nonlocal current
-            current = next_token
-            nonlocal is_done
+            next_token = next(self._tokens)
+            self._current = next_token
         except StopIteration:
-            is_done = True
+            self._is_done = True
 
-    def parse_atom():
-        name = current
+    def _parse_atom(self):
+        name = self._current
         if re.match(ATOM_NAME_REGEX, name) is None:
             raise Exception(f'Bad atom name: {name}')
 
-        advance()
+        self._advance()
         return name
 
-    def parse_term():
-        if current == '(':
-            advance()
+    def _parse_term(self):
+        if self._current == '(':
+            self._advance()
             args = []
-            while current != ')':
-                args.append(parse_term())
-                if current != ',' and current != ')':
+            while self._current != ')':
+                args.append(self._parse_term())
+                if self._current != ',' and self._current != ')':
                     raise Exception(
-                        f'Expecter , or ) in term but got {current}')
-                if current == ',':
-                    advance()
+                        f'Expecter , or ) in term but got {self._current}')
+                if self._current == ',':
+                    self._advance()
 
-            advance()
+            self._advance()
             return Conjunction(args)
 
-        predicate = parse_atom()
+        predicate = self._parse_atom()
         if re.match(VARIABLE_REGEX, predicate) is not None:
             if predicate == '_':
                 return Variable('_')
 
-            variable = scope.get(predicate, None)
+            variable = self._scope.get(predicate, None)
             if variable is None:
                 variable = Variable(predicate)
-                scope[predicate] = variable
+                self._scope[predicate] = variable
             return variable
 
-        if current != '(':
+        if self._current != '(':
             return Term(predicate)
 
-        advance()
+        self._advance()
         args = []
-        while current != ')':
-            args.append(parse_term())
-            if current != ',' and current != ')':
-                raise Exception(f'Expected , or ) in term but got {current}')
+        while self._current != ')':
+            args.append(self._parse_term())
+            if self._current != ',' and self._current != ')':
+                raise Exception(
+                    f'Expected , or ) in term but got {self._current}')
 
-            if current == ',':
-                advance()
+            if self._current == ',':
+                self._advance()
 
-        advance()
+        self._advance()
         return Term(predicate, *args)
 
-    def parse_rule():
-        head = parse_term()
+    def _parse_rule(self):
+        head = self._parse_term()
 
-        if current == '.':
-            advance()
+        if self._current == '.':
+            self._advance()
             return Rule(head, TRUE())
 
-        if current != ':-':
-            raise Exception(f'Expected :- in rule but got {current}')
+        if self._current != ':-':
+            raise Exception(f'Expected :- in rule but got {self._current}')
 
-        advance()
+        self._advance()
         args = []
-        while current != '.':
-            args.append(parse_term())
-            if current != ',' and current != '.':
-                raise Exception(f'Expected , or ) in term but got {current}')
+        while self._current != '.':
+            args.append(self._parse_term())
+            if self._current != ',' and self._current != '.':
+                raise Exception(
+                    f'Expected , or ) in term but got {self._current}')
 
-            if current == ',':
-                advance()
+            if self._current == ',':
+                self._advance()
 
-        advance()
+        self._advance()
         body = None
         if len(args) == 1:
             body = args[0]
@@ -107,21 +110,13 @@ def parser(tokens):
 
         return Rule(head, body)
 
-    def parse_rules():
+    def parse_rules(self):
         rules = []
-        while not is_done:
-            nonlocal scope
-            scope = {}
-            rules.append(parse_rule())
+        while not self._is_done:
+            self._scope = {}
+            rules.append(self._parse_rule())
         return rules
 
-    def term_parser():
-        nonlocal scope
-        scope = {}
-        return parse_term()
-
-    advance()
-    return {
-        'parse_rules': parse_rules,
-        'parse_term': term_parser
-    }
+    def parse_terms(self):
+        self._scope = {}
+        return self._parse_term()
