@@ -1,5 +1,5 @@
 from prolog.interpreter import Term, Variable, Runtime
-from prolog.parser import lexer, parser
+from prolog.parser import lexer, Parser
 
 
 def test_simple_rule_match():
@@ -33,13 +33,13 @@ def test_query_with_multiple_results():
     location(shoe, hall).
     '''
 
-    rules = parser(lexer(rules))['parse_rules']()
+    rules = Parser(lexer(rules)).parse_rules()
 
     runtime = Runtime(rules)
 
     goal_text = 'location(computer, X)'
 
-    goal = parser(lexer(goal_text))['parse_term']()
+    goal = Parser(lexer(goal_text)).parse_terms()
 
     x = goal.args[1]
 
@@ -108,13 +108,13 @@ def test_puzzle1():
         exists(house(_, ZebraOwner, _, _, zebra), Houses).
     ''' # noqa
 
-    rules = parser(lexer(puzzle))['parse_rules']()
+    rules = Parser(lexer(puzzle)).parse_rules()
 
     runtime = Runtime(rules)
 
     goal_text = 'solution(WaterDrinker, ZebraOwner)'
 
-    goal = parser(lexer(goal_text))['parse_term']()
+    goal = Parser(lexer(goal_text)).parse_terms()
 
     x = goal.args[0]
 
@@ -175,13 +175,13 @@ def test_puzzle2():
     exists(house(_, FishOwner, _, _, fish), Houses).
     '''
 
-    rules = parser(lexer(puzzle))['parse_rules']()
+    rules = Parser(lexer(puzzle)).parse_rules()
 
     runtime = Runtime(rules)
 
     goal_text = 'solution(FishOwner)'
 
-    goal = parser(lexer(goal_text))['parse_term']()
+    goal = Parser(lexer(goal_text)).parse_terms()
 
     x = goal.args[0]
 
