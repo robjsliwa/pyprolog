@@ -1,17 +1,20 @@
 [tool.poetry]
-name = "pyprolog"
+name = "prolog"
 version = "0.1.0"
 description = "Prolog Interpreter"
 authors = ["robjsliwa <robjsliwa@gmail.com>"]
 license = "MIT"
 
+[tool.poetry.scripts]
+prolog = "prolog.prolog:main"
+
 [tool.poetry.dependencies]
 python = "^3.7"
-pytest = "^6.2.4"
-pytest-cov = "^2.12.0"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^3.9.2"
+pytest = "^6.2.4"
+pytest-cov = "^2.12.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
