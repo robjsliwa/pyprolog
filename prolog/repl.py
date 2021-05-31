@@ -1,11 +1,18 @@
 import argparse
+import os
 import sys
 from colorama import Fore, init
+from prompt_toolkit import prompt
+from prompt_toolkit.history import FileHistory
+from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
+from pathlib import Path
 from .parser import Parser, lexer
 from .interpreter import Runtime
 
 
 init(autoreset=True)
+
+home_path = str(Path.home())
 
 
 def success(input):
@@ -14,6 +21,10 @@ def success(input):
 
 def failure(input):
     return f'{Fore.RED}{input}'
+
+
+def warning(input):
+    return f'{Fore.YELLOW}{input}'
 
 
 def run_repl():
@@ -49,9 +60,16 @@ def run_repl():
         print(failure('Failed to compile Prolog rules'))
         sys.exit()
 
+    print(success('\nWelcome to Simple Prolog'))
+    print(warning('ctrl-c to quit'))
     try:
         while True:
-            query = input('>>> ')
+            query = prompt(
+                '> ',
+                history=FileHistory(os.path.join(
+                    home_path, '.simpleprolog_history')),
+                auto_suggest=AutoSuggestFromHistory()
+            )
             try:
                 goal = Parser(lexer(query)).parse_terms()
                 for index, item in enumerate(runtime.execute(goal)):

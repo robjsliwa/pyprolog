@@ -11,6 +11,7 @@ prolog = "prolog.prolog:main"
 [tool.poetry.dependencies]
 python = "^3.7"
 colorama = "^0.4.4"
+prompt-toolkit = "^3.0.18"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^3.9.2"
