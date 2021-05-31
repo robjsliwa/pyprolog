@@ -1,5 +1,8 @@
 # Simple Prolog Interpreter in Python
 
+![badges](https://github.com/robjsliwa/pyprolog/actions/workflows/python-package.yml/badge.svg)
+[![license](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
+
 ## Install dependencies
 
 ```
