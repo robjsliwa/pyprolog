@@ -1,60 +1,66 @@
-import re
+from prolog.token_type import TokenType
 from .interpreter import Conjunction, Variable, Term, Rule, TRUE
-
-
-TOKEN_REGEX = r"[A-Za-z0-9_]+|:\-|[()\.,]"
-ATOM_NAME_REGEX = r"^[A-Za-z0-9_]+$"
-VARIABLE_REGEX = r"^[A-Z_][A-Za-z0-9_]*$"
-
-
-def lexer(text):
-    matches = re.findall(TOKEN_REGEX, text)
-
-    for token in matches:
-        yield token
 
 
 class Parser:
     def __init__(self, tokens):
-        self._current = ''
+        self._current = 0
         self._is_done = False
         self._scope = {}
         self._tokens = tokens
-        self._advance()
+
+    def _peek(self):
+        return self._tokens[self._current]
+
+    def _is_at_end(self):
+        return self._peek().token_type == TokenType.EOF
+
+    def _previous(self):
+        return self._tokens[self._current - 1]
 
     def _advance(self):
-        try:
-            next_token = next(self._tokens)
-            self._current = next_token
-        except StopIteration:
+        self._current += 1
+        if self._is_at_end():
             self._is_done = True
+        return self._previous()
+
+    def _token_matches(self, token_type):
+        return self._peek().token_type == token_type
+
+    def _is_type(self, token, token_type):
+        return token.token_type == token_type
 
     def _parse_atom(self):
-        name = self._current
-        if re.match(ATOM_NAME_REGEX, name) is None:
-            raise Exception(f'Bad atom name: {name}')
+        token = self._peek()
+        if not self._token_matches(TokenType.VARIABLE) and \
+           not self._token_matches(TokenType.ATOM):
+            raise Exception(f'Bad atom name: {token.lexeme}')
 
         self._advance()
-        return name
+        return token
 
     def _parse_term(self):
-        if self._current == '(':
+        if self._token_matches(TokenType.LEFTPAREN):
             self._advance()
             args = []
-            while self._current != ')':
+            while not self._token_matches(TokenType.RIGHTPAREN):
                 args.append(self._parse_term())
-                if self._current != ',' and self._current != ')':
+                if not self._token_matches(TokenType.COMMA) and \
+                   not self._token_matches(TokenType.RIGHTPAREN):
                     raise Exception(
-                        f'Expecter , or ) in term but got {self._current}')
-                if self._current == ',':
+                        f'Expecter , or ) in term but got {self._peek()}')
+                if self._token_matches(TokenType.COMMA):
                     self._advance()
 
             self._advance()
+            print(f'ARGS: {args}')
             return Conjunction(args)
 
-        predicate = self._parse_atom()
-        if re.match(VARIABLE_REGEX, predicate) is not None:
-            if predicate == '_':
+        token = self._parse_atom()
+        predicate = token.lexeme
+        if self._is_type(token, TokenType.VARIABLE) or \
+           self._is_type(token, TokenType.UNDERSCORE):
+            if self._is_type(token, TokenType.UNDERSCORE):
                 return Variable('_')
 
             variable = self._scope.get(predicate, None)
@@ -63,42 +69,46 @@ class Parser:
                 self._scope[predicate] = variable
             return variable
 
-        if self._current != '(':
+        if not self._token_matches(TokenType.LEFTPAREN):
             return Term(predicate)
 
         self._advance()
         args = []
-        while self._current != ')':
+        while not self._token_matches(TokenType.RIGHTPAREN):
             args.append(self._parse_term())
-            if self._current != ',' and self._current != ')':
+            if not self._token_matches(TokenType.COMMA) and \
+               not self._token_matches(TokenType.RIGHTPAREN):
                 raise Exception(
-                    f'Expected , or ) in term but got {self._current}')
+                    f'Expected , or ) in term but got {self._peek()}')
 
-            if self._current == ',':
+            if self._token_matches(TokenType.COMMA):
                 self._advance()
 
         self._advance()
+        print(f'ARGS(t): {args}')
         return Term(predicate, *args)
 
     def _parse_rule(self):
         head = self._parse_term()
+        print(f'HEAD: {head}')
 
-        if self._current == '.':
+        if self._token_matches(TokenType.DOT):
             self._advance()
             return Rule(head, TRUE())
 
-        if self._current != ':-':
-            raise Exception(f'Expected :- in rule but got {self._current}')
+        if not self._token_matches(TokenType.COLONMINUS):
+            raise Exception(f'Expected :- in rule but got {self._peek()}')
 
         self._advance()
         args = []
-        while self._current != '.':
+        while not self._token_matches(TokenType.DOT):
             args.append(self._parse_term())
-            if self._current != ',' and self._current != '.':
+            if not self._token_matches(TokenType.COMMA) and \
+               not self._token_matches(TokenType.DOT):
                 raise Exception(
-                    f'Expected , or ) in term but got {self._current}')
+                    f'Expected , or . in term but got {self._peek()}')
 
-            if self._current == ',':
+            if self._token_matches(TokenType.COMMA):
                 self._advance()
 
         self._advance()

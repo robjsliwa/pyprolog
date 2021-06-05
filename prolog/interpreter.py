@@ -106,6 +106,12 @@ class Rule:
         self.head = head
         self.body = body
 
+    def __str__(self):
+        return f'{self.head}{self.body}'
+
+    def __repr__(self):
+        return str(self)
+
 
 class Conjunction(Term):
     def __init__(self, args):
