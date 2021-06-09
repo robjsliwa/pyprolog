@@ -33,6 +33,7 @@ class Parser:
     def _parse_atom(self):
         token = self._peek()
         if not self._token_matches(TokenType.VARIABLE) and \
+           not self._token_matches(TokenType.UNDERSCORE) and \
            not self._token_matches(TokenType.ATOM):
             raise Exception(f'Bad atom name: {token.lexeme}')
 
@@ -53,7 +54,6 @@ class Parser:
                     self._advance()
 
             self._advance()
-            print(f'ARGS: {args}')
             return Conjunction(args)
 
         token = self._parse_atom()
@@ -85,12 +85,10 @@ class Parser:
                 self._advance()
 
         self._advance()
-        print(f'ARGS(t): {args}')
         return Term(predicate, *args)
 
     def _parse_rule(self):
         head = self._parse_term()
-        print(f'HEAD: {head}')
 
         if self._token_matches(TokenType.DOT):
             self._advance()

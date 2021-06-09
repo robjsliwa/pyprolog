@@ -59,7 +59,7 @@ class Scanner:
     def _peek_next(self):
         if self._current + 1 >= len(self._source):
             return '\0'
-        return self._source[self._source + 1]
+        return self._source[self._current + 1]
 
     def _is_digit(self, c):
         return c >= '0' and c <= '9'
@@ -98,7 +98,12 @@ class Scanner:
             pass
         elif self._is_lowercase_alpha(c):
             self._process_atom()
-        elif self._is_uppercase_alpha(c) or c == '_':
+        elif c == '_':
+            if not self._is_alphanumeric(self._peek_next()):
+                self._add_token(TokenType.UNDERSCORE)
+            else:
+                self._process_variable()
+        elif self._is_uppercase_alpha(c):
             self._process_variable()
         elif c == '(':
             self._add_token(TokenType.LEFTPAREN)

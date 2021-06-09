@@ -25,7 +25,6 @@ def test_query_with_multiple_results():
 
     tokens = Scanner(source).tokenize()
     rules = Parser(tokens).parse_rules()
-    print(f'RULES: {rules}')
 
     runtime = Runtime(rules)
 
