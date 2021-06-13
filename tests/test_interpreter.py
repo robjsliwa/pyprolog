@@ -1,6 +1,22 @@
 from prolog.interpreter import Term, Variable, Runtime
 from prolog.parser import Parser
 from prolog.scanner import Scanner
+import cProfile
+import functools
+import pstats
+import tempfile
+
+
+def profile_me(func):
+    @functools.wraps(func)
+    def wraps(*args, **kwargs):
+        file = tempfile.mktemp()
+        profiler = cProfile.Profile()
+        profiler.runcall(func, *args, **kwargs)
+        profiler.dump_stats(file)
+        metrics = pstats.Stats(file)
+        metrics.strip_dirs().sort_stats('time').print_stats(100)
+    return wraps
 
 
 def test_simple_rule_match():
@@ -55,6 +71,7 @@ def test_query_with_multiple_results():
     assert has_solution is True
 
 
+@profile_me
 def test_puzzle1():
     puzzle = '''
     exists(A, list(A, _, _, _, _)).
