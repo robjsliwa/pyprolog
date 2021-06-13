@@ -90,6 +90,11 @@ class Term:
         return str(self)
 
 
+class Number(Term):
+    def __init__(self, pred):
+        super().__init__(pred)
+
+
 class TRUE(Term):
     def __init__(self):
         super().__init__(TRUE)

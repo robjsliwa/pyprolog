@@ -77,7 +77,13 @@ class Scanner:
         return c >= 'A' and c <= 'Z'
 
     def _is_whitespace(self, c):
-        return c == ' ' or c == '\r' or c == '\t' or c == '\n'
+        return c == ' ' or c == '\r' or c == '\t'
+
+    def _str_to_number(self, strnum):
+        try:
+            return float(strnum)
+        except Exception:
+            self._report(self._line, f'"{strnum}" is not a number.')
 
     def _process_atom(self):
         while self._is_alphanumeric(self._peek()):
@@ -91,11 +97,29 @@ class Scanner:
 
         self._add_token(TokenType.VARIABLE)
 
+    def _process_number(self):
+        while self._is_digit(self._peek()):
+            self._advance()
+
+        if self._peek() == '.' and self._is_digit(self._peek_next()):
+            self._advance()
+            while self._is_digit(self._peek()):
+                self._advance()
+
+        value = self._str_to_number(self._source[self._start:self._current])
+        self._add_token_with_literal(TokenType.NUMBER, value)
+
     def _scan_token(self):
         c = self._advance()
 
         if self._is_whitespace(c):
             pass
+        elif c == '\n':
+            self._line += 1
+        elif c == '%':
+            while not self._peek() == '\n' and \
+                  not self._is_at_end():
+                self._advance()
         elif self._is_lowercase_alpha(c):
             self._process_atom()
         elif c == '_':
@@ -105,6 +129,8 @@ class Scanner:
                 self._process_variable()
         elif self._is_uppercase_alpha(c):
             self._process_variable()
+        elif self._is_digit(c):
+            self._process_number()
         elif c == '(':
             self._add_token(TokenType.LEFTPAREN)
         elif c == ')':

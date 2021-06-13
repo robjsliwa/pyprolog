@@ -4,6 +4,7 @@ from enum import Enum, auto
 class TokenType(Enum):
     ATOM = auto(),
     VARIABLE = auto(),
+    NUMBER = auto(),
     LEFTPAREN = auto(),
     RIGHTPAREN = auto(),
     COLONMINUS = auto(),

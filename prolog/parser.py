@@ -1,16 +1,25 @@
 from prolog.token_type import TokenType
-from .interpreter import Conjunction, Variable, Term, Rule, TRUE
+from .interpreter import Conjunction, Variable, Term, Rule, TRUE, Number
+
+
+def default_error_handler(line, message):
+    print(f'Line[{line}] Error: {message}')
+    raise Exception('Parser error')
 
 
 class Parser:
-    def __init__(self, tokens):
+    def __init__(self, tokens, report=default_error_handler):
         self._current = 0
         self._is_done = False
         self._scope = {}
         self._tokens = tokens
+        self._report = report
 
     def _peek(self):
         return self._tokens[self._current]
+
+    def _peek_next(self):
+        return self._tokens[self._current + 1]
 
     def _is_at_end(self):
         return self._peek().token_type == TokenType.EOF
@@ -34,8 +43,18 @@ class Parser:
         token = self._peek()
         if not self._token_matches(TokenType.VARIABLE) and \
            not self._token_matches(TokenType.UNDERSCORE) and \
+           not self._token_matches(TokenType.NUMBER) and \
            not self._token_matches(TokenType.ATOM):
-            raise Exception(f'Bad atom name: {token.lexeme}')
+            self._report(token.line, f'Bad atom name: {token.lexeme}')
+
+        if self._is_type(token, TokenType.NUMBER):
+            if self._peek_next().token_type == TokenType.COLONMINUS or \
+               self._peek_next().token_type == TokenType.DOT or \
+               self._peek_next().token_type == TokenType.LEFTPAREN:
+                self._report(
+                    self._peek().line,
+                    f'Number cannot be a rule: {self._peek()}'
+                )
 
         self._advance()
         return token
@@ -48,7 +67,8 @@ class Parser:
                 args.append(self._parse_term())
                 if not self._token_matches(TokenType.COMMA) and \
                    not self._token_matches(TokenType.RIGHTPAREN):
-                    raise Exception(
+                    self._report(
+                        self._peek().line,
                         f'Expecter , or ) in term but got {self._peek()}')
                 if self._token_matches(TokenType.COMMA):
                     self._advance()
@@ -69,6 +89,10 @@ class Parser:
                 self._scope[predicate] = variable
             return variable
 
+        if self._is_type(token, TokenType.NUMBER):
+            number_value = token.literal
+            return Number(number_value)
+
         if not self._token_matches(TokenType.LEFTPAREN):
             return Term(predicate)
 
@@ -78,7 +102,8 @@ class Parser:
             args.append(self._parse_term())
             if not self._token_matches(TokenType.COMMA) and \
                not self._token_matches(TokenType.RIGHTPAREN):
-                raise Exception(
+                self._report(
+                    self._peek().line,
                     f'Expected , or ) in term but got {self._peek()}')
 
             if self._token_matches(TokenType.COMMA):
@@ -95,7 +120,9 @@ class Parser:
             return Rule(head, TRUE())
 
         if not self._token_matches(TokenType.COLONMINUS):
-            raise Exception(f'Expected :- in rule but got {self._peek()}')
+            self._report(
+                self._peek().line,
+                f'Expected :- in rule but got {self._peek()}')
 
         self._advance()
         args = []
@@ -103,7 +130,8 @@ class Parser:
             args.append(self._parse_term())
             if not self._token_matches(TokenType.COMMA) and \
                not self._token_matches(TokenType.DOT):
-                raise Exception(
+                self._report(
+                    self._peek().line,
                     f'Expected , or . in term but got {self._peek()}')
 
             if self._token_matches(TokenType.COMMA):

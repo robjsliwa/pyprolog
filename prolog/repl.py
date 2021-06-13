@@ -55,8 +55,7 @@ def run_repl():
             Scanner(rules_text).tokenize()
         ).parse_rules()
         runtime = Runtime(rules)
-    except Exception as e:
-        print(f'Error while loading rules: {str(e)}')
+    except Exception:
         sys.exit()
 
     if runtime is None:
