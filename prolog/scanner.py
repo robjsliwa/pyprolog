@@ -109,6 +109,20 @@ class Scanner:
         value = self._str_to_number(self._source[self._start:self._current])
         self._add_token_with_literal(TokenType.NUMBER, value)
 
+    def _process_string_literal(self):
+        while self._peek() != "'" and not self._is_at_end():
+            if self._peek() == '\n':
+                self._line += 1
+            self._advance()
+
+        if self._is_at_end():
+            self._report(self._line, 'Unterminated string')
+
+        self._advance()
+
+        literal = self._source[self._start+1:self._current-1]
+        self._add_token_with_literal(TokenType.ATOM, literal)
+
     def _scan_token(self):
         c = self._advance()
 
@@ -120,6 +134,16 @@ class Scanner:
             while not self._peek() == '\n' and \
                   not self._is_at_end():
                 self._advance()
+        elif c == '/':
+            if self._is_next('*'):
+                while not self._is_at_end():
+                    c = self._advance()
+                    if c == '*' and self._is_next('/'):
+                        break
+                    if self._is_at_end():
+                        self._report(self._line, 'Unterminated comment')
+        elif c == "'":
+            self._process_string_literal()
         elif self._is_lowercase_alpha(c):
             self._process_atom()
         elif c == '_':
