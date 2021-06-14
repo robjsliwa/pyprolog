@@ -1,5 +1,6 @@
-from .parser import Parser, lexer
+from .parser import Parser
+from .scanner import Scanner
 from .interpreter import Runtime
 
 
-__all__ = ['Parser', 'Runtime', 'lexer']
+__all__ = ['Parser', 'Runtime', 'Scanner']

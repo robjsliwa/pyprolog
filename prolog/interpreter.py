@@ -90,6 +90,11 @@ class Term:
         return str(self)
 
 
+class Number(Term):
+    def __init__(self, pred):
+        super().__init__(pred)
+
+
 class TRUE(Term):
     def __init__(self):
         super().__init__(TRUE)
@@ -105,6 +110,12 @@ class Rule:
     def __init__(self, head, body):
         self.head = head
         self.body = body
+
+    def __str__(self):
+        return f'{self.head}{self.body}'
+
+    def __repr__(self):
+        return str(self)
 
 
 class Conjunction(Term):

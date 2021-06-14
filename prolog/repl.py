@@ -6,7 +6,8 @@ from prompt_toolkit import prompt
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from pathlib import Path
-from .parser import Parser, lexer
+from .parser import Parser
+from .scanner import Scanner
 from .interpreter import Runtime
 
 
@@ -50,10 +51,11 @@ def run_repl():
                 rules_text += line
                 line = reader.readline()
 
-        rules = Parser(lexer(rules_text)).parse_rules()
+        rules = Parser(
+            Scanner(rules_text).tokenize()
+        ).parse_rules()
         runtime = Runtime(rules)
-    except Exception as e:
-        print(f'Error while loading rules: {str(e)}')
+    except Exception:
         sys.exit()
 
     if runtime is None:
@@ -71,7 +73,9 @@ def run_repl():
                 auto_suggest=AutoSuggestFromHistory()
             )
             try:
-                goal = Parser(lexer(query)).parse_terms()
+                goal = Parser(
+                    Scanner(query).tokenize()
+                ).parse_terms()
                 for index, item in enumerate(runtime.execute(goal)):
                     print(success(item))
             except Exception as e:
