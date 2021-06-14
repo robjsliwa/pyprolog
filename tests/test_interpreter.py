@@ -217,3 +217,61 @@ def test_puzzle2():
     for index, item in enumerate(runtime.execute(goal)):
         assert str(item) == expected_results[index]
         assert str(goal.match(item).get(x)) == expected_bindings[index]
+
+
+def test_support_for_numbers():
+    input = '''
+    window(main, 2, 2.0, 20, 72).
+    window(error, 15, 4.0, 20, 78).
+    '''
+
+    rules = Parser(
+        Scanner(input).tokenize()
+    ).parse_rules()
+
+    runtime = Runtime(rules)
+
+    goal_text = 'window(T, X, X, Z, W)'
+
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_terms()
+
+    x = goal.args[1]
+
+    expected_results = ['window(main, 2.0, 2.0, 20.0, 72.0)']
+
+    expected_bindings = ['2.0']
+
+    for index, item in enumerate(runtime.execute(goal)):
+        assert str(item) == expected_results[index]
+        assert str(goal.match(item).get(x)) == expected_bindings[index]
+
+
+def test_support_for_string_literals():
+    input = '''
+    customer('John Jones', boston, good_credit).
+    customer('Sally Smith', chicago, good_credit).
+    '''
+
+    rules = Parser(
+        Scanner(input).tokenize()
+    ).parse_rules()
+
+    runtime = Runtime(rules)
+
+    goal_text = "customer('Sally Smith', Y, Z)"
+
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_terms()
+
+    x = goal.args[1]
+
+    expected_results = ["customer('Sally Smith', chicago, good_credit)"]
+
+    expected_bindings = ['chicago']
+
+    for index, item in enumerate(runtime.execute(goal)):
+        assert str(item) == expected_results[index]
+        assert str(goal.match(item).get(x)) == expected_bindings[index]
