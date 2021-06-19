@@ -29,6 +29,30 @@ For example,
 poetry run prolog tests/data/puzzle1.prolog
 ```
 
+Sample REPL session output:
+
+```
+poetry run prolog tests/data/myadven.prolog 
+
+Welcome to Simple Prolog
+ctrl-c to quit
+> location(desk, office)
+yes
+> location(desk, office1)
+no
+> location(X, Y)
+X = desk Y = office 
+X = apple Y = kitchen 
+X = flashlight Y = desk 
+X = 'washing machine' Y = cellar 
+X = nani Y = 'washing machine' 
+X = broccoli Y = kitchen 
+X = crackers Y = kitchen 
+X = computer Y = office 
+no
+>
+```
+
 ## Test
 
 Linter:
