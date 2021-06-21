@@ -146,6 +146,49 @@ class Parser:
 
         return Rule(head, body)
 
+    def _all_vars(self, terms):
+        variables = []
+        for term in terms:
+            for arg in term.args:
+                if isinstance(arg, Variable):
+                    if arg not in variables:
+                        variables.append(arg)
+        return variables
+
+    def _parse_query(self):
+        head = self._parse_term()
+
+        if self._token_matches(TokenType.DOT):
+            self._advance()
+            return head
+
+        if self._token_matches(TokenType.COLONMINUS):
+            self._report(
+                self._peek().line,
+                'Cannot use rule as a query')
+
+        self._advance()
+        args = [head]
+        while not self._token_matches(TokenType.DOT):
+            args.append(self._parse_term())
+            if not self._token_matches(TokenType.COMMA) and \
+               not self._token_matches(TokenType.DOT):
+                self._report(
+                    self._peek().line,
+                    f'Expected , or . in term but got {self._peek()}')
+
+            if self._token_matches(TokenType.COMMA):
+                self._advance()
+
+        self._advance()
+
+        head = Term('##')
+        vars = self._all_vars(args)
+        if len(vars) > 0:
+            head = Term('##', *vars)
+
+        return Rule(head, Conjunction(args))
+
     def parse_rules(self):
         rules = []
         while not self._is_done:
@@ -156,3 +199,7 @@ class Parser:
     def parse_terms(self):
         self._scope = {}
         return self._parse_term()
+
+    def parse_query(self):
+        self._scope = {}
+        return self._parse_query()

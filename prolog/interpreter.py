@@ -147,12 +147,35 @@ class Conjunction(Term):
         )
 
 
+class Query:
+    def __init__(self, query):
+        self._query = query
+
+    def goal(self):
+        if isinstance(self._query, Rule):
+            return self._query.head
+        return self._query
+
+    def as_lst(self):
+        if isinstance(self._query, Rule):
+            return [self._query]
+        return []
+
+
 class Runtime:
     def __init__(self, rules):
         self.rules = rules
 
-    def execute(self, goal):
-        for rule in self.rules:
+    def all_rules(self, query):
+        if isinstance(query, Rule):
+            return self.rules + [query]
+        return self.rules
+
+    def execute(self, query):
+        goal = query
+        if isinstance(query, Rule):
+            goal = query.head
+        for rule in self.all_rules(query):
             match = rule.head.match(goal)
             if match is not None:
                 head = rule.head.substitute(match)
