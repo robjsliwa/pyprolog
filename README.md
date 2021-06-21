@@ -50,7 +50,11 @@ X = broccoli Y = kitchen
 X = crackers Y = kitchen 
 X = computer Y = office 
 no
->
+> door(kitchen, R), location(T, R).
+R = office T = desk 
+R = office T = computer 
+R = cellar T = 'washing machine' 
+no
 ```
 
 ## Test
