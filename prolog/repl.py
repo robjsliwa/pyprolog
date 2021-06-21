@@ -8,7 +8,7 @@ from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from pathlib import Path
 from .parser import Parser
 from .scanner import Scanner
-from .interpreter import Runtime, Variable
+from .interpreter import Runtime, Variable, Rule
 
 
 init(autoreset=True)
@@ -50,6 +50,8 @@ def warning(input):
 
 def display_variables(goal, solution):
     has_variables = False
+    if isinstance(goal, Rule):
+        goal = goal.head
     for index, arg in enumerate(goal.args):
         if isinstance(arg, Variable):
             v = goal.args[index]
@@ -107,7 +109,7 @@ def run_repl():
             try:
                 goal = Parser(
                     Scanner(query).tokenize()
-                ).parse_terms()
+                ).parse_query()
 
                 is_first_iter = False
                 has_solution = False

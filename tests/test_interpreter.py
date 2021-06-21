@@ -44,13 +44,13 @@ def test_query_with_multiple_results():
 
     runtime = Runtime(rules)
 
-    goal_text = 'location(computer, X)'
+    goal_text = 'location(X, office)'
 
     goal = Parser(
         Scanner(goal_text).tokenize()
     ).parse_terms()
 
-    x = goal.args[1]
+    x = goal.args[0]
 
     expected_results = [
         'location(computer, office)',
@@ -58,7 +58,7 @@ def test_query_with_multiple_results():
     ]
 
     expected_binding = [
-        'office',
+        'computer',
         'chair'
     ]
 
@@ -69,6 +69,52 @@ def test_query_with_multiple_results():
         assert str(goal.match(item).get(x)) == expected_binding[index]
 
     assert has_solution is True
+
+
+def test_multi_term_query():
+    source = '''
+    location(desk, office).
+    location(apple, kitchen).
+    location(flashlight, desk).
+    location('washing machine', cellar).
+    location(nani, 'washing machine').
+    location(broccoli, kitchen).
+    location(crackers, kitchen).
+    location(computer, office).
+
+    door(office, hall).
+    door(kitchen, office).
+    door(hall, 'dinning room').
+    door(kitchen, cellar).
+    door('dinninr room', kitchen).
+    '''
+
+    tokens = Scanner(source).tokenize()
+    rules = Parser(tokens).parse_rules()
+
+    runtime = Runtime(rules)
+
+    goal_text = 'door(kitchen, R), location(T, R).'
+
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_query()
+
+    R = goal.head.args[0]
+    T = goal.head.args[1]
+
+    expected_binding = [
+        {'R': 'office', 'T': 'desk'},
+        {'R': 'office', 'T': 'computer'},
+        {'R': 'cellar', 'T': "'washing machine'"}
+    ]
+
+    print(f'TEST GOAL: {goal}')
+    for index, item in enumerate(runtime.execute(goal)):
+        assert str(goal.head.match(item).get(R)) == \
+            expected_binding[index]['R']
+        assert str(goal.head.match(item).get(T)) == \
+            expected_binding[index]['T']
 
 
 @profile_me
