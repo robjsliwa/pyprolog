@@ -1,4 +1,3 @@
-import argparse
 import os
 import sys
 from colorama import Fore, init
@@ -8,7 +7,7 @@ from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from pathlib import Path
 from .parser import Parser
 from .scanner import Scanner
-from .interpreter import Runtime, Variable, Rule
+from .interpreter import Variable, Rule
 
 
 init(autoreset=True)
@@ -62,40 +61,7 @@ def display_variables(goal, solution):
         print('')
 
 
-def run_repl():
-    ap = argparse.ArgumentParser(
-        prog='prolog',
-        usage='%(prog)s [options] path',
-        description='Simple Prolog interpreter'
-    )
-    ap.add_argument(
-        'Path',
-        type=str,
-        help='Path to file with Prolog rules'
-    )
-    args = ap.parse_args()
-    input_path = args.Path
-
-    rules_text = ''
-    runtime = None
-    try:
-        with open(input_path) as reader:
-            line = reader.readline()
-            while line != '':
-                rules_text += line
-                line = reader.readline()
-
-        rules = Parser(
-            Scanner(rules_text).tokenize()
-        ).parse_rules()
-        runtime = Runtime(rules)
-    except Exception:
-        sys.exit()
-
-    if runtime is None:
-        print(failure('Failed to compile Prolog rules'))
-        sys.exit()
-
+def run_repl(runtime):
     print(success('\nWelcome to Simple Prolog'))
     print(warning('ctrl-c to quit'))
     try:

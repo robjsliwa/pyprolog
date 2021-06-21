@@ -44,7 +44,7 @@ def test_query_with_multiple_results():
 
     runtime = Runtime(rules)
 
-    goal_text = 'location(X, office)'
+    goal_text = 'location(X, office).'
 
     goal = Parser(
         Scanner(goal_text).tokenize()
@@ -109,7 +109,6 @@ def test_multi_term_query():
         {'R': 'cellar', 'T': "'washing machine'"}
     ]
 
-    print(f'TEST GOAL: {goal}')
     for index, item in enumerate(runtime.execute(goal)):
         assert str(goal.head.match(item).get(R)) == \
             expected_binding[index]['R']
@@ -173,11 +172,11 @@ def test_puzzle1():
 
     runtime = Runtime(rules)
 
-    goal_text = 'solution(WaterDrinker, ZebraOwner)'
+    goal_text = 'solution(WaterDrinker, ZebraOwner).'
 
     goal = Parser(
         Scanner(goal_text).tokenize()
-    ).parse_terms()
+    ).parse_query()
 
     x = goal.args[0]
 
@@ -248,11 +247,11 @@ def test_puzzle2():
 
     runtime = Runtime(rules)
 
-    goal_text = 'solution(FishOwner)'
+    goal_text = 'solution(FishOwner).'
 
     goal = Parser(
         Scanner(goal_text).tokenize()
-    ).parse_terms()
+    ).parse_query()
 
     x = goal.args[0]
 
@@ -277,11 +276,11 @@ def test_support_for_numbers():
 
     runtime = Runtime(rules)
 
-    goal_text = 'window(T, X, X, Z, W)'
+    goal_text = 'window(T, X, X, Z, W).'
 
     goal = Parser(
         Scanner(goal_text).tokenize()
-    ).parse_terms()
+    ).parse_query()
 
     x = goal.args[1]
 
@@ -306,11 +305,11 @@ def test_support_for_string_literals():
 
     runtime = Runtime(rules)
 
-    goal_text = "customer('Sally Smith', Y, Z)"
+    goal_text = "customer('Sally Smith', Y, Z)."
 
     goal = Parser(
         Scanner(goal_text).tokenize()
-    ).parse_terms()
+    ).parse_query()
 
     x = goal.args[1]
 
