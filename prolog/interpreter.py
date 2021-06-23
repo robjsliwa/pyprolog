@@ -128,13 +128,17 @@ class Conjunction(Term):
                 yield self.substitute(bindings)
             else:
                 arg = self.args[index]
-                for item in runtime.execute(arg.substitute(bindings)):
-                    unified = merge_bindings(
-                        arg.match(item),
-                        bindings
-                    )
-                    if unified is not None:
-                        yield from solutions(index + 1, unified)
+                if isinstance(arg, Write):
+                    arg.substitute(bindings).display()
+                    yield from solutions(index + 1, bindings)
+                else:
+                    for item in runtime.execute(arg.substitute(bindings)):
+                        unified = merge_bindings(
+                            arg.match(item),
+                            bindings
+                        )
+                        if unified is not None:
+                            yield from solutions(index + 1, unified)
 
         yield from solutions(0, {})
 
@@ -147,19 +151,50 @@ class Conjunction(Term):
         )
 
 
-class Query:
-    def __init__(self, query):
-        self._query = query
+class Fail:
+    def __init__(self):
+        self.name = 'fail'
 
-    def goal(self):
-        if isinstance(self._query, Rule):
-            return self._query.head
-        return self._query
+    def match(self, other):
+        return None
 
-    def as_lst(self):
-        if isinstance(self._query, Rule):
-            return [self._query]
-        return []
+    def substitute(self, bindings):
+        return self
+
+    def __str__(self):
+        return str(self.name)
+
+    def __repr__(self):
+        return str(self)
+
+
+class Write:
+    def __init__(self, *args):
+        self.pred = 'write'
+        self.args = list(args)
+
+    def match(self, other):
+        return {}
+
+    def substitute(self, bindings):
+        result = Write(*map(
+            (lambda arg: arg.substitute(bindings)),
+            self.args
+        ))
+        return result
+
+    def display(self):
+        for arg in self.args:
+            print(arg, end='')
+
+    def __str__(self):
+        if len(self.args) == 0:
+            return f'{self.pred}'
+        args = ', '.join(map(str, self.args))
+        return f'{self.pred}({args})'
+
+    def __repr__(self):
+        return str(self)
 
 
 class Runtime:

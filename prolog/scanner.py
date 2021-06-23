@@ -15,6 +15,16 @@ class Scanner:
         self._current = 0
         self._line = 1
         self._report = report
+        self._keywords = self._initialize_keywords()
+
+    def _initialize_keywords(self):
+        keywords = {
+            'fail': TokenType.FAIL,
+            'write': TokenType.WRITE,
+            'nl': TokenType.NL,
+            'tab': TokenType.TAB
+        }
+        return keywords
 
     def _add_token(self, token_type):
         self._add_token_with_literal(token_type, None)
@@ -85,11 +95,17 @@ class Scanner:
         except Exception:
             self._report(self._line, f'"{strnum}" is not a number.')
 
+    def _is_keyword(self):
+        value = self._source[self._start:self._current]
+        token_type = self._keywords.get(value, TokenType.ATOM)
+        return token_type
+
     def _process_atom(self):
         while self._is_alphanumeric(self._peek()):
             self._advance()
 
-        self._add_token(TokenType.ATOM)
+        token_type = self._is_keyword()
+        self._add_token(token_type)
 
     def _process_variable(self):
         while self._is_alphanumeric(self._peek()):

@@ -12,4 +12,8 @@ class TokenType(Enum):
     DOT = auto(),
     UNDERSCORE = auto(),
     SINGLEQUOTE = auto(),
+    FAIL = auto(),
+    WRITE = auto(),
+    NL = auto(),
+    TAB = auto(),
     EOF = auto()

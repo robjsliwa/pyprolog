@@ -95,7 +95,7 @@ def run_repl(runtime):
                     print('yes')
                 else:
                     print('no')
-            except Exception as e:
+            except BufferError as e:
                 print(failure(f'Error: {str(e)}'))
     except KeyboardInterrupt:
         print('\nExiting...')
