@@ -122,13 +122,20 @@ class Conjunction(Term):
     def __init__(self, args):
         super().__init__(None, *args)
 
+    def _is_builtin(self, arg):
+        if isinstance(arg, Write) or \
+           isinstance(arg, Nl) or \
+           isinstance(arg, Tab):
+            return True
+        return False
+
     def query(self, runtime):
         def solutions(index, bindings):
             if index >= len(self.args):
                 yield self.substitute(bindings)
             else:
                 arg = self.args[index]
-                if isinstance(arg, Write):
+                if self._is_builtin(arg):
                     arg.substitute(bindings).display()
                     yield from solutions(index + 1, bindings)
                 else:
@@ -192,6 +199,46 @@ class Write:
             return f'{self.pred}'
         args = ', '.join(map(str, self.args))
         return f'{self.pred}({args})'
+
+    def __repr__(self):
+        return str(self)
+
+
+class Nl:
+    def __init__(self):
+        self.pred = 'nl'
+
+    def match(self, other):
+        return {}
+
+    def substitute(self, bindings):
+        return Nl()
+
+    def display(self):
+        print('')
+
+    def __str__(self):
+        return 'nl'
+
+    def __repr__(self):
+        return str(self)
+
+
+class Tab:
+    def __init__(self):
+        self.pred = 'tab'
+
+    def match(self, other):
+        return {}
+
+    def substitute(self, bindings):
+        return Tab()
+
+    def display(self):
+        print('', end='\t')
+
+    def __str__(self):
+        return 'nl'
 
     def __repr__(self):
         return str(self)

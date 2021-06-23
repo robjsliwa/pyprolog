@@ -72,6 +72,9 @@ def run_repl(runtime):
                     home_path, '.simpleprolog_history')),
                 auto_suggest=AutoSuggestFromHistory()
             )
+            if query == '':
+                continue
+
             try:
                 goal = Parser(
                     Scanner(query).tokenize()
@@ -95,7 +98,7 @@ def run_repl(runtime):
                     print('yes')
                 else:
                     print('no')
-            except BufferError as e:
+            except Exception as e:
                 print(failure(f'Error: {str(e)}'))
     except KeyboardInterrupt:
         print('\nExiting...')

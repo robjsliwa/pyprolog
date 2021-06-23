@@ -1,6 +1,6 @@
 from prolog.token_type import TokenType
 from .interpreter import Conjunction, Variable, Term, Rule, TRUE, Number, \
-    Fail, Write
+    Fail, Write, Nl, Tab
 
 
 def default_error_handler(line, message):
@@ -100,6 +100,12 @@ class Parser:
 
         if self._is_type(token, TokenType.FAIL):
             return Fail()
+
+        if self._is_type(token, TokenType.NL):
+            return Nl()
+
+        if self._is_type(token, TokenType.TAB):
+            return Tab()
 
         if self._is_type(token, TokenType.NUMBER):
             number_value = token.literal

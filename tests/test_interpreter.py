@@ -109,11 +109,123 @@ def test_multi_term_query():
         {'R': 'cellar', 'T': "'washing machine'"}
     ]
 
+    has_solution = False
     for index, item in enumerate(runtime.execute(goal)):
+        has_solution = True
         assert str(goal.head.match(item).get(R)) == \
             expected_binding[index]['R']
         assert str(goal.head.match(item).get(T)) == \
             expected_binding[index]['T']
+
+    assert has_solution is True
+
+
+def test_query_with_builtins():
+    source = '''
+    room(kitchen).
+    room(office).
+    room(hall).
+    room('dinning room').
+    room(cellar).
+
+    location(desk, office).
+    location(apple, kitchen).
+    location(flashlight, desk).
+    location('washing machine', cellar).
+    location(nani, 'washing machine').
+    location(broccoli, kitchen).
+    location(crackers, kitchen).
+    location(computer, office).
+
+    door(office, hall).
+    door(kitchen, office).
+    door(hall, 'dinning room').
+    door(kitchen, cellar).
+    door('dinninr room', kitchen).
+    '''
+
+    tokens = Scanner(source).tokenize()
+    rules = Parser(tokens).parse_rules()
+
+    runtime = Runtime(rules)
+
+    goal_text = 'room(X), tab, write(X), nl.'
+
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_query()
+
+    X = goal.head.args[0]
+
+    expected_binding = [
+        {'X': 'kitchen'},
+        {'X': 'office'},
+        {'X': 'hall'},
+        {'X': "'dinning room'"},
+        {'X': 'cellar'}
+    ]
+
+    has_solution = False
+    for index, item in enumerate(runtime.execute(goal)):
+        has_solution = True
+        assert str(goal.head.match(item).get(X)) == \
+            expected_binding[index]['X']
+
+    assert has_solution is True
+
+
+def test_fail_builtin():
+    source = '''
+    room(kitchen).
+    room(office).
+    room(hall).
+    room('dinning room').
+    room(cellar).
+
+    location(desk, office).
+    location(apple, kitchen).
+    location(flashlight, desk).
+    location('washing machine', cellar).
+    location(nani, 'washing machine').
+    location(broccoli, kitchen).
+    location(crackers, kitchen).
+    location(computer, office).
+
+    door(office, hall).
+    door(kitchen, office).
+    door(hall, 'dinning room').
+    door(kitchen, cellar).
+    door('dinninr room', kitchen).
+    '''
+
+    tokens = Scanner(source).tokenize()
+    rules = Parser(tokens).parse_rules()
+
+    runtime = Runtime(rules)
+
+    goal_text = 'room(X), tab, write(X), nl, fail.'
+
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_query()
+
+    X = goal.head.args[0]
+
+    expected_binding = [
+        {'X': 'kitchen'},
+        {'X': 'office'},
+        {'X': 'hall'},
+        {'X': "'dinning room'"},
+        {'X': 'cellar'}
+    ]
+
+    has_solution = False
+    for index, item in enumerate(runtime.execute(goal)):
+        has_solution = True
+        assert str(goal.head.match(item).get(X)) == \
+            expected_binding[index]['X']
+
+    assert has_solution is False
 
 
 @profile_me
