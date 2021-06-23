@@ -1,5 +1,6 @@
 from prolog.token_type import TokenType
-from .interpreter import Conjunction, Variable, Term, Rule, TRUE, Number
+from .interpreter import Conjunction, Variable, Term, Rule, TRUE, Number, \
+    Fail, Write, Nl, Tab
 
 
 def default_error_handler(line, message):
@@ -34,6 +35,8 @@ class Parser:
         return self._previous()
 
     def _token_matches(self, token_type):
+        if isinstance(token_type, list):
+            return self._peek().token_type in token_type
         return self._peek().token_type == token_type
 
     def _is_type(self, token, token_type):
@@ -41,10 +44,16 @@ class Parser:
 
     def _parse_atom(self):
         token = self._peek()
-        if not self._token_matches(TokenType.VARIABLE) and \
-           not self._token_matches(TokenType.UNDERSCORE) and \
-           not self._token_matches(TokenType.NUMBER) and \
-           not self._token_matches(TokenType.ATOM):
+        if not self._token_matches([
+            TokenType.VARIABLE,
+            TokenType.UNDERSCORE,
+            TokenType.NUMBER,
+            TokenType.FAIL,
+            TokenType.WRITE,
+            TokenType.NL,
+            TokenType.TAB,
+            TokenType.ATOM
+        ]):
             self._report(token.line, f'Bad atom name: {token.lexeme}')
 
         if self._is_type(token, TokenType.NUMBER):
@@ -89,6 +98,15 @@ class Parser:
                 self._scope[predicate] = variable
             return variable
 
+        if self._is_type(token, TokenType.FAIL):
+            return Fail()
+
+        if self._is_type(token, TokenType.NL):
+            return Nl()
+
+        if self._is_type(token, TokenType.TAB):
+            return Tab()
+
         if self._is_type(token, TokenType.NUMBER):
             number_value = token.literal
             return Number(number_value)
@@ -110,6 +128,10 @@ class Parser:
                 self._advance()
 
         self._advance()
+
+        if self._is_type(token, TokenType.WRITE):
+            return Write(*args)
+
         return Term(predicate, *args)
 
     def _parse_rule(self):
@@ -149,10 +171,11 @@ class Parser:
     def _all_vars(self, terms):
         variables = []
         for term in terms:
-            for arg in term.args:
-                if isinstance(arg, Variable):
-                    if arg not in variables:
-                        variables.append(arg)
+            if isinstance(term, Term):
+                for arg in term.args:
+                    if isinstance(arg, Variable):
+                        if arg not in variables:
+                            variables.append(arg)
         return variables
 
     def _parse_query(self):

@@ -122,19 +122,30 @@ class Conjunction(Term):
     def __init__(self, args):
         super().__init__(None, *args)
 
+    def _is_builtin(self, arg):
+        if isinstance(arg, Write) or \
+           isinstance(arg, Nl) or \
+           isinstance(arg, Tab):
+            return True
+        return False
+
     def query(self, runtime):
         def solutions(index, bindings):
             if index >= len(self.args):
                 yield self.substitute(bindings)
             else:
                 arg = self.args[index]
-                for item in runtime.execute(arg.substitute(bindings)):
-                    unified = merge_bindings(
-                        arg.match(item),
-                        bindings
-                    )
-                    if unified is not None:
-                        yield from solutions(index + 1, unified)
+                if self._is_builtin(arg):
+                    arg.substitute(bindings).display()
+                    yield from solutions(index + 1, bindings)
+                else:
+                    for item in runtime.execute(arg.substitute(bindings)):
+                        unified = merge_bindings(
+                            arg.match(item),
+                            bindings
+                        )
+                        if unified is not None:
+                            yield from solutions(index + 1, unified)
 
         yield from solutions(0, {})
 
@@ -147,19 +158,90 @@ class Conjunction(Term):
         )
 
 
-class Query:
-    def __init__(self, query):
-        self._query = query
+class Fail:
+    def __init__(self):
+        self.name = 'fail'
 
-    def goal(self):
-        if isinstance(self._query, Rule):
-            return self._query.head
-        return self._query
+    def match(self, other):
+        return None
 
-    def as_lst(self):
-        if isinstance(self._query, Rule):
-            return [self._query]
-        return []
+    def substitute(self, bindings):
+        return self
+
+    def __str__(self):
+        return str(self.name)
+
+    def __repr__(self):
+        return str(self)
+
+
+class Write:
+    def __init__(self, *args):
+        self.pred = 'write'
+        self.args = list(args)
+
+    def match(self, other):
+        return {}
+
+    def substitute(self, bindings):
+        result = Write(*map(
+            (lambda arg: arg.substitute(bindings)),
+            self.args
+        ))
+        return result
+
+    def display(self):
+        for arg in self.args:
+            print(arg, end='')
+
+    def __str__(self):
+        if len(self.args) == 0:
+            return f'{self.pred}'
+        args = ', '.join(map(str, self.args))
+        return f'{self.pred}({args})'
+
+    def __repr__(self):
+        return str(self)
+
+
+class Nl:
+    def __init__(self):
+        self.pred = 'nl'
+
+    def match(self, other):
+        return {}
+
+    def substitute(self, bindings):
+        return Nl()
+
+    def display(self):
+        print('')
+
+    def __str__(self):
+        return 'nl'
+
+    def __repr__(self):
+        return str(self)
+
+
+class Tab:
+    def __init__(self):
+        self.pred = 'tab'
+
+    def match(self, other):
+        return {}
+
+    def substitute(self, bindings):
+        return Tab()
+
+    def display(self):
+        print('', end='\t')
+
+    def __str__(self):
+        return 'nl'
+
+    def __repr__(self):
+        return str(self)
 
 
 class Runtime:

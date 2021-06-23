@@ -72,6 +72,9 @@ def run_repl(runtime):
                     home_path, '.simpleprolog_history')),
                 auto_suggest=AutoSuggestFromHistory()
             )
+            if query == '':
+                continue
+
             try:
                 goal = Parser(
                     Scanner(query).tokenize()

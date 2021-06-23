@@ -57,6 +57,42 @@ R = cellar T = 'washing machine'
 no
 ```
 
+Simple Prolog supports following built-ins: write, tab, nl and fail.
+
+You can use them to display values of variables or text:
+
+```
+Welcome to Simple Prolog
+ctrl-c to quit
+> room(X), tab, write(X), nl.
+        kitchen
+X = kitchen 
+        office
+X = office 
+        hall
+X = hall 
+        'dinning room'
+X = 'dinning room' 
+        cellar
+X = cellar 
+no
+>
+```
+
+or if you do not want to see the solutions just print out:
+
+```
+> write('This is the list of rooms:'), nl, room(X), tab, write(X), nl, fail.
+'This is the list of rooms:'
+        kitchen
+        office
+        hall
+        'dinning room'
+        cellar
+no
+>
+```
+
 ## Test
 
 Linter:
