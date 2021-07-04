@@ -22,7 +22,8 @@ class Scanner:
             'fail': TokenType.FAIL,
             'write': TokenType.WRITE,
             'nl': TokenType.NL,
-            'tab': TokenType.TAB
+            'tab': TokenType.TAB,
+            'is': TokenType.IS
         }
         return keywords
 
@@ -169,12 +170,22 @@ class Scanner:
                 self._process_variable()
         elif self._is_uppercase_alpha(c):
             self._process_variable()
+        elif c == '-' and self._is_digit(self._peek()):
+            self._process_number()
         elif self._is_digit(c):
             self._process_number()
         elif c == '(':
             self._add_token(TokenType.LEFTPAREN)
         elif c == ')':
             self._add_token(TokenType.RIGHTPAREN)
+        elif c == '*':
+            self._add_token(TokenType.MULTIPLY)
+        elif c == '/':
+            self._add_token(TokenType.DIVIDE)
+        elif c == '+':
+            self._add_token(TokenType.PLUS)
+        elif c == '-':
+            self._add_token(TokenType.MINUS)
         elif c == ':':
             if self._is_next('-'):
                 self._add_token(TokenType.COLONMINUS)

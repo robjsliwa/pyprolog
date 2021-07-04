@@ -98,7 +98,9 @@ def run_repl(runtime):
                     print('yes')
                 else:
                     print('no')
-            except Exception as e:
+            except IndexError:
+                print('Unterminated input')
+            except KeyboardInterrupt as e:  # Exception as e:
                 print(failure(f'Error: {str(e)}'))
     except KeyboardInterrupt:
         print('\nExiting...')

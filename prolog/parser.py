@@ -1,6 +1,6 @@
 from prolog.token_type import TokenType
-from .interpreter import Conjunction, Variable, Term, Rule, TRUE, Number, \
-    Fail, Write, Nl, Tab
+from .interpreter import Arithmetic, Conjunction, PrimaryExpression, \
+    Variable, Term, Rule, TRUE, Number, Fail, Write, Nl, Tab
 
 
 def default_error_handler(line, message):
@@ -41,6 +41,38 @@ class Parser:
 
     def _is_type(self, token, token_type):
         return token.token_type == token_type
+
+    def _create_variable(self, predicate):
+        variable = self._scope.get(predicate, None)
+        if variable is None:
+            variable = Variable(predicate)
+            self._scope[predicate] = variable
+        return variable
+
+    def _parse_primary_expression(self):
+        token = self._peek()
+
+        if self._is_type(token, TokenType.NUMBER):
+            self._advance()
+            number_value = token.literal
+            return PrimaryExpression(Number(number_value))
+        elif self._is_type(token, TokenType.VARIABLE):
+            self._advance()
+            return PrimaryExpression(
+                self._create_variable(token.lexeme)
+            )
+
+        self._report(
+            self._peek().line,
+            f'Expected number or variable but got: {token}'
+        )
+
+    def _parse_expression(self, token):
+        var = self._create_variable(token.lexeme)
+        self._advance()  # consume IS
+
+        expr = self._parse_primary_expression()
+        return Arithmetic(var, expr)
 
     def _parse_atom(self):
         token = self._peek()
@@ -92,11 +124,11 @@ class Parser:
             if self._is_type(token, TokenType.UNDERSCORE):
                 return Variable('_')
 
-            variable = self._scope.get(predicate, None)
-            if variable is None:
-                variable = Variable(predicate)
-                self._scope[predicate] = variable
-            return variable
+            if self._is_type(token, TokenType.VARIABLE) and \
+               self._peek().token_type == TokenType.IS:
+                return self._parse_expression(token)
+
+            return self._create_variable(predicate)
 
         if self._is_type(token, TokenType.FAIL):
             return Fail()

@@ -90,6 +90,57 @@ class Term:
         return str(self)
 
 
+class Arithmetic:
+    def __init__(self, var, expression):
+        self._var = var
+        self._expression = expression
+
+    @property
+    def args(self):
+        return [self._var]
+
+    @property
+    def var(self):
+        return self._var
+
+    def match(self, other):
+        return {}
+
+    def evaluate(self):
+        exp_val = self._expression.evaluate()
+        return exp_val
+
+    def substitute(self, bindings):
+        return self
+
+    def __str__(self):
+        return f'{self._var}'
+
+    def __repr__(self):
+        return str(self)
+
+
+class BinaryExpression:
+    def __init__(self, left, operator, right):
+        self._left = left
+        self._operator = operator
+        self._right = right
+
+
+class UnaryExpression:
+    def __init__(self, operator, right):
+        self._operator = operator
+        self._right = right
+
+
+class PrimaryExpression:
+    def __init__(self, exp):
+        self._exp = exp
+
+    def evaluate(self):
+        return self._exp
+
+
 class Number(Term):
     def __init__(self, pred):
         super().__init__(pred)
@@ -138,6 +189,13 @@ class Conjunction(Term):
                 if self._is_builtin(arg):
                     arg.substitute(bindings).display()
                     yield from solutions(index + 1, bindings)
+                elif isinstance(arg, Arithmetic):
+                    val = arg.substitute(bindings).evaluate()
+                    unified = merge_bindings(
+                        {arg._var: val},
+                        bindings
+                    )
+                    yield from solutions(index + 1, unified)
                 else:
                     for item in runtime.execute(arg.substitute(bindings)):
                         unified = merge_bindings(
