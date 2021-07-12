@@ -42,11 +42,16 @@ class Parser:
     def _is_type(self, token, token_type):
         return token.token_type == token_type
 
-    def _create_variable(self, predicate):
-        variable = self._scope.get(predicate, None)
+    def _create_variable(self, name, has_arithmetic_exp=None):
+        variable = self._scope.get(name, None)
         if variable is None:
-            variable = Variable(predicate)
-            self._scope[predicate] = variable
+            if has_arithmetic_exp is None:
+                variable = Variable(name)
+            else:
+                variable = Arithmetic(name, has_arithmetic_exp)
+            self._scope[name] = variable
+        elif isinstance(variable, Variable) and has_arithmetic_exp is not None:
+            variable = Arithmetic(name, has_arithmetic_exp)
         return variable
 
     def _parse_primary_expression(self):
@@ -67,12 +72,20 @@ class Parser:
             f'Expected number or variable but got: {token}'
         )
 
+    # def _parse_expression(self, token):
+    #     var = self._create_variable(token.lexeme)
+    #     self._advance()  # consume IS
+
+    #     expr = self._parse_primary_expression()
+    #     return Arithmetic(var, expr)
+
     def _parse_expression(self, token):
-        var = self._create_variable(token.lexeme)
         self._advance()  # consume IS
 
-        expr = self._parse_primary_expression()
-        return Arithmetic(var, expr)
+        return self._create_variable(
+            token.lexeme,
+            self._parse_primary_expression()
+        )
 
     def _parse_atom(self):
         token = self._peek()

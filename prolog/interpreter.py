@@ -90,31 +90,40 @@ class Term:
         return str(self)
 
 
-class Arithmetic:
-    def __init__(self, var, expression):
-        self._var = var
+class Arithmetic(Variable):
+    def __init__(self, name, expression):
+        super().__init__(name)
         self._expression = expression
 
     @property
     def args(self):
-        return [self._var]
+        return [self]
 
     @property
     def var(self):
-        return self._var
+        return self
 
     def match(self, other):
-        return {}
+        bindings = dict()
+        if self != other:
+            bindings[self] = self.evaluate()
+        return bindings
+
+    def substitute(self, bindings):
+        value = bindings.get(self, None)
+        if value is not None:
+            return value.substitute(bindings)
+        return self
 
     def evaluate(self):
         exp_val = self._expression.evaluate()
         return exp_val
 
-    def substitute(self, bindings):
-        return self
+    def query(self, runtime):
+        yield self
 
     def __str__(self):
-        return f'{self._var}'
+        return f'{self.name}'
 
     def __repr__(self):
         return str(self)
@@ -192,7 +201,7 @@ class Conjunction(Term):
                 elif isinstance(arg, Arithmetic):
                     val = arg.substitute(bindings).evaluate()
                     unified = merge_bindings(
-                        {arg._var: val},
+                        {arg.var: val},
                         bindings
                     )
                     yield from solutions(index + 1, unified)
@@ -320,5 +329,14 @@ class Runtime:
             if match is not None:
                 head = rule.head.substitute(match)
                 body = rule.body.substitute(match)
-                for item in body.query(self):
-                    yield head.substitute(body.match(item))
+                if isinstance(body, Arithmetic):
+                    arith = None
+                    for arg in head.args:
+                        if isinstance(arg, Variable) and arg.name == body.name:
+                            arith = head.substitute({arg: body.evaluate()})
+                            break
+                    if arith is not None:
+                        yield arith
+                else:
+                    for item in body.query(self):
+                        yield head.substitute(body.match(item))
