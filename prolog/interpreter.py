@@ -1,4 +1,8 @@
 from functools import reduce
+from .math_interpreter import MathInterpreter
+
+
+math_interpreter = MathInterpreter()
 
 
 def merge_bindings(bindings1, bindings2):
@@ -116,8 +120,9 @@ class Arithmetic(Variable):
         return self
 
     def evaluate(self):
-        exp_val = self._expression.evaluate()
-        return exp_val
+        # exp_val = self._expression.evaluate()
+        # return exp_val
+        return self._expression.accept(math_interpreter)
 
     def query(self, runtime):
         yield self
@@ -129,30 +134,21 @@ class Arithmetic(Variable):
         return str(self)
 
 
-class BinaryExpression:
-    def __init__(self, left, operator, right):
-        self._left = left
-        self._operator = operator
-        self._right = right
-
-
-class UnaryExpression:
-    def __init__(self, operator, right):
-        self._operator = operator
-        self._right = right
-
-
-class PrimaryExpression:
-    def __init__(self, exp):
-        self._exp = exp
-
-    def evaluate(self):
-        return self._exp
-
-
 class Number(Term):
     def __init__(self, pred):
         super().__init__(pred)
+
+    def multiply(self, number):
+        return Number(self.pred * number.pred)
+
+    def divide(self, number):
+        return Number(self.pred / number.pred)
+
+    def add(self, number):
+        return Number(self.pred + number.pred)
+
+    def substract(self, number):
+        return Number(self.pred - number.pred)
 
 
 class TRUE(Term):

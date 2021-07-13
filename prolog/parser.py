@@ -1,6 +1,8 @@
 from prolog.token_type import TokenType
-from .interpreter import Arithmetic, Conjunction, PrimaryExpression, \
-    Variable, Term, Rule, TRUE, Number, Fail, Write, Nl, Tab
+from .interpreter import Arithmetic, Conjunction, \
+    Variable, Term, Rule, TRUE, Number, Fail, \
+    Write, Nl, Tab
+from .expression import BinaryExpression, PrimaryExpression
 
 
 def default_error_handler(line, message):
@@ -54,7 +56,7 @@ class Parser:
             variable = Arithmetic(name, has_arithmetic_exp)
         return variable
 
-    def _parse_primary_expression(self):
+    def _parse_primary(self):
         token = self._peek()
 
         if self._is_type(token, TokenType.NUMBER):
@@ -72,19 +74,36 @@ class Parser:
             f'Expected number or variable but got: {token}'
         )
 
-    # def _parse_expression(self, token):
-    #     var = self._create_variable(token.lexeme)
-    #     self._advance()  # consume IS
+    def _parse_addition(self):
+        expr = self._parse_multiplication()
 
-    #     expr = self._parse_primary_expression()
-    #     return Arithmetic(var, expr)
+        while self._token_matches([TokenType.MINUS, TokenType.PLUS]):
+            self._advance()
+            operator = self._previous().lexeme
+            right = self._parse_multiplication()
+            expr = BinaryExpression(expr, operator, right)
+        return expr
 
-    def _parse_expression(self, token):
+    def _parse_multiplication(self):
+        expr = self._parse_primary()
+
+        while self._token_matches([TokenType.SLASH, TokenType.STAR]):
+            self._advance()
+            operator = self._previous().lexeme
+            right = self._parse_primary()
+            expr = BinaryExpression(expr, operator, right)
+        return expr
+
+    def _parse_expression(self):
+        return self._parse_addition()
+
+    def _parse_arithmetic(self, token):
         self._advance()  # consume IS
 
         return self._create_variable(
             token.lexeme,
-            self._parse_primary_expression()
+            # self._parse_primary()
+            self._parse_expression()
         )
 
     def _parse_atom(self):
@@ -139,7 +158,7 @@ class Parser:
 
             if self._is_type(token, TokenType.VARIABLE) and \
                self._peek().token_type == TokenType.IS:
-                return self._parse_expression(token)
+                return self._parse_arithmetic(token)
 
             return self._create_variable(predicate)
 
