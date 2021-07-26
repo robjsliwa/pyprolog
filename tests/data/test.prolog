@@ -8,3 +8,4 @@ test2 :- Z is 6/2, write(Z).
 dog(1).
 whatdog :- dog(X), write(X).
 %test4(D) :- Y is 1, dog(Y).
+test3(Z) :- Z is (5 + 2) * (3 - 1).

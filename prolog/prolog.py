@@ -35,7 +35,8 @@ def main():
             Scanner(rules_text).tokenize()
         ).parse_rules()
         runtime = Runtime(rules)
-    except Exception:
+    except Exception as e:
+        print(f'Error loading rules: {e}')
         sys.exit()
 
     if runtime is None:

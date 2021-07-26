@@ -68,6 +68,17 @@ class Parser:
             return PrimaryExpression(
                 self._create_variable(token.lexeme)
             )
+        elif self._is_type(token, TokenType.LEFTPAREN):
+            self._advance()
+            expr = self._parse_expression()
+
+            prev_token = self._advance()  # consume ')'
+            if prev_token.token_type != TokenType.RIGHTPAREN:
+                self._report(
+                    self._peek().line,
+                    f'Expected ")" after expression: {expr} but got {prev_token}'
+                )
+            return expr
 
         self._report(
             self._peek().line,
