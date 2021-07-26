@@ -76,7 +76,7 @@ class Parser:
             if prev_token.token_type != TokenType.RIGHTPAREN:
                 self._report(
                     self._peek().line,
-                    f'Expected ")" after expression: {expr} but got {prev_token}'
+                    f'Expected ")" after expression: {expr}'
                 )
             return expr
 
