@@ -178,8 +178,6 @@ class ExpressionBinder(Visitor):
     This returns identical expression tree as the input but with variables
     replaced with values.
     """
-
-
     def __init__(self, bindings):
         self._bindings = bindings
 
@@ -198,7 +196,7 @@ class ExpressionBinder(Visitor):
             for k, v in self._bindings.items():
                 if k.name == exp.name:
                     return PrimaryExpression(v)
-        
+
         return expr
 
 

@@ -460,6 +460,7 @@ def test_simple_arithmetics():
     for index, item in enumerate(runtime.execute(goal)):
         assert str(goal.match(item).get(x)) == expected_bindings[index]
 
+
 def test_arithmetics_with_grouping():
     input = '''
     test(Z) :- Z is (5 + 2) * (3 - 1).
@@ -483,6 +484,7 @@ def test_arithmetics_with_grouping():
 
     for index, item in enumerate(runtime.execute(goal)):
         assert str(goal.match(item).get(x)) == expected_bindings[index]
+
 
 def test_arithmetics_with_variables():
     input = '''
