@@ -2,6 +2,11 @@ from .expression import Visitor
 
 
 class MathInterpreter(Visitor):
+    """Arithmetic Interpreter
+
+    This class walks the expression tree and evaluates returning
+    the computed value.
+    """
     def _evaluate_expr(self, expr):
         return expr.accept(self)
 

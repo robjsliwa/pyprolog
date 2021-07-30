@@ -1,7 +1,7 @@
 from prolog.token_type import TokenType
-from .interpreter import Arithmetic, Conjunction, \
-    Variable, Term, Rule, TRUE, Number, Fail, \
-    Write, Nl, Tab
+from .interpreter import Conjunction, Rule
+from .types import Arithmetic, Variable, Term, TRUE, Number
+from .builtins import Fail, Write, Nl, Tab
 from .expression import BinaryExpression, PrimaryExpression
 
 
