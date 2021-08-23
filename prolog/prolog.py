@@ -8,20 +8,7 @@ from .parser import Parser
 from .scanner import Scanner
 
 
-def main():
-    ap = argparse.ArgumentParser(
-        prog='prolog',
-        usage='%(prog)s [options] path',
-        description='Simple Prolog interpreter'
-    )
-    ap.add_argument(
-        'Path',
-        type=str,
-        help='Path to file with Prolog rules'
-    )
-    args = ap.parse_args()
-    input_path = args.Path
-
+def start(input_path):
     rules_text = ''
     runtime = None
     try:
@@ -43,6 +30,21 @@ def main():
         print('Failed to compile Prolog rules')
         sys.exit()
     run_repl(runtime)
+
+def main():
+    ap = argparse.ArgumentParser(
+        prog='prolog',
+        usage='%(prog)s [options] path',
+        description='Simple Prolog interpreter'
+    )
+    ap.add_argument(
+        'Path',
+        type=str,
+        help='Path to file with Prolog rules'
+    )
+    args = ap.parse_args()
+    input_path = args.Path
+    start(input_path)
 
 
 if __name__ == '__main__':
