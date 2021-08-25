@@ -29,7 +29,7 @@ def start(input_path):
     if runtime is None:
         print('Failed to compile Prolog rules')
         sys.exit()
-    run_repl(runtime)
+    return runtime
 
 
 def main():
@@ -45,7 +45,7 @@ def main():
     )
     args = ap.parse_args()
     input_path = args.Path
-    start(input_path)
+    run_repl(start(input_path))
 
 
 if __name__ == '__main__':
