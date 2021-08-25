@@ -31,6 +31,7 @@ def start(input_path):
         sys.exit()
     run_repl(runtime)
 
+
 def main():
     ap = argparse.ArgumentParser(
         prog='prolog',
