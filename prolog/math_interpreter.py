@@ -13,7 +13,7 @@ class MathInterpreter(Visitor):
 
     def _compute_binary_operand(self, left, operand, right):
         if type(left) != type(right):
-            raise InterpreterError(f'left {left} and right {right} operand must have the same type')
+            raise InterpreterError(f'left {left} and right {right} operand must have the same type')  # noqa
         if operand == '*':
             return left.multiply(right)
         elif operand == '/':

@@ -96,5 +96,3 @@ class Runtime:
             if isinstance(query, Rule):
                 goal = query.head
             yield from self.evaluate_rules(query, goal)
-
-        
