@@ -70,10 +70,7 @@ class Runtime:
             return self.rules + [query]
         return self.rules
 
-    def execute(self, query):
-        goal = query
-        if isinstance(query, Rule):
-            goal = query.head
+    def evaluate_rules(self, query, goal):
         for rule in self.all_rules(query):
             match = rule.head.match(goal)
             if match is not None:
@@ -90,3 +87,14 @@ class Runtime:
                 else:
                     for item in body.query(self):
                         yield head.substitute(body.match(item))
+
+    def execute(self, query):
+        goal = query
+        if isinstance(query, Arithmetic):
+            yield query.evaluate()
+        else:
+            if isinstance(query, Rule):
+                goal = query.head
+            yield from self.evaluate_rules(query, goal)
+
+        

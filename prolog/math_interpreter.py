@@ -1,4 +1,5 @@
 from .expression import Visitor
+from .errors import InterpreterError
 
 
 class MathInterpreter(Visitor):
@@ -11,6 +12,8 @@ class MathInterpreter(Visitor):
         return expr.accept(self)
 
     def _compute_binary_operand(self, left, operand, right):
+        if type(left) != type(right):
+            raise InterpreterError(f'left {left} and right {right} operand must have the same type')
         if operand == '*':
             return left.multiply(right)
         elif operand == '/':
@@ -20,7 +23,7 @@ class MathInterpreter(Visitor):
         elif operand == '-':
             return left.substract(right)
         else:
-            raise Exception(f'Invalid binary operand {operand}')
+            raise InterpreterError(f'Invalid binary operand {operand}')
 
     def visit_binary(self, expr):
         left = self._evaluate_expr(expr.left)

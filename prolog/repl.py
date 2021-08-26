@@ -8,6 +8,7 @@ from pathlib import Path
 from .parser import Parser
 from .scanner import Scanner
 from .interpreter import Variable, Rule
+from .errors import InterpreterError
 
 
 init(autoreset=True)
@@ -101,6 +102,8 @@ def run_repl(runtime):
             except IndexError:
                 print('Unterminated input')
             except KeyboardInterrupt as e:  # Exception as e:
+                print(failure(f'Error: {str(e)}'))
+            except InterpreterError as e:
                 print(failure(f'Error: {str(e)}'))
     except KeyboardInterrupt:
         print('\nExiting...')
