@@ -1,109 +1,5 @@
-from functools import reduce
-
-
-def merge_bindings(bindings1, bindings2):
-    if bindings1 is None or bindings2 is None:
-        return None
-
-    bindings = dict()
-
-    bindings = {**bindings1}
-
-    for variable, value in bindings2.items():
-        if variable in bindings:
-            other = bindings[variable]
-            sub = other.match(value)
-
-            if sub is not None:
-                for var, val in sub.items():
-                    bindings[var] = val
-            else:
-                return None
-        else:
-            bindings[variable] = value
-
-    return bindings
-
-
-class Variable:
-    def __init__(self, name):
-        self.name = name
-
-    def match(self, other):
-        bindings = dict()
-        if self != other:
-            bindings[self] = other
-        return bindings
-
-    def substitute(self, bindings):
-        value = bindings.get(self, None)
-        if value is not None:
-            return value.substitute(bindings)
-        return self
-
-    def __str__(self):
-        return str(self.name)
-
-    def __repr__(self):
-        return str(self)
-
-
-class Term:
-    def __init__(self, pred, *args):
-        self.pred = pred
-        self.args = list(args)
-
-    def match(self, other):
-        if isinstance(other, Term):
-            if self.pred != other.pred or \
-               len(self.args) != len(other.args):
-                return None
-
-            m = list(
-                    map(
-                        (lambda arg1, arg2: arg1.match(arg2)),
-                        self.args,
-                        other.args
-                    )
-            )
-
-            return reduce(merge_bindings, [{}] + m)
-
-        return other.match(self)
-
-    def substitute(self, bindings):
-        return Term(self.pred, *map(
-            (lambda arg: arg.substitute(bindings)),
-            self.args
-        ))
-
-    def query(self, runtime):
-        yield from runtime.execute(self)
-
-    def __str__(self):
-        if len(self.args) == 0:
-            return f'{self.pred}'
-        args = ', '.join(map(str, self.args))
-        return f'{self.pred}({args})'
-
-    def __repr__(self):
-        return str(self)
-
-
-class Number(Term):
-    def __init__(self, pred):
-        super().__init__(pred)
-
-
-class TRUE(Term):
-    def __init__(self):
-        super().__init__(TRUE)
-
-    def substitute(self, bindings):
-        return self
-
-    def query(self, runtime):
-        yield self
+from .types import Variable, Term, merge_bindings, Arithmetic
+from .builtins import Write, Nl, Tab
 
 
 class Rule:
@@ -138,6 +34,13 @@ class Conjunction(Term):
                 if self._is_builtin(arg):
                     arg.substitute(bindings).display()
                     yield from solutions(index + 1, bindings)
+                elif isinstance(arg, Arithmetic):
+                    val = arg.substitute(bindings).evaluate()
+                    unified = merge_bindings(
+                        {arg.var: val},
+                        bindings
+                    )
+                    yield from solutions(index + 1, unified)
                 else:
                     for item in runtime.execute(arg.substitute(bindings)):
                         unified = merge_bindings(
@@ -158,92 +61,6 @@ class Conjunction(Term):
         )
 
 
-class Fail:
-    def __init__(self):
-        self.name = 'fail'
-
-    def match(self, other):
-        return None
-
-    def substitute(self, bindings):
-        return self
-
-    def __str__(self):
-        return str(self.name)
-
-    def __repr__(self):
-        return str(self)
-
-
-class Write:
-    def __init__(self, *args):
-        self.pred = 'write'
-        self.args = list(args)
-
-    def match(self, other):
-        return {}
-
-    def substitute(self, bindings):
-        result = Write(*map(
-            (lambda arg: arg.substitute(bindings)),
-            self.args
-        ))
-        return result
-
-    def display(self):
-        for arg in self.args:
-            print(arg, end='')
-
-    def __str__(self):
-        if len(self.args) == 0:
-            return f'{self.pred}'
-        args = ', '.join(map(str, self.args))
-        return f'{self.pred}({args})'
-
-    def __repr__(self):
-        return str(self)
-
-
-class Nl:
-    def __init__(self):
-        self.pred = 'nl'
-
-    def match(self, other):
-        return {}
-
-    def substitute(self, bindings):
-        return Nl()
-
-    def display(self):
-        print('')
-
-    def __str__(self):
-        return 'nl'
-
-    def __repr__(self):
-        return str(self)
-
-
-class Tab:
-    def __init__(self):
-        self.pred = 'tab'
-
-    def match(self, other):
-        return {}
-
-    def substitute(self, bindings):
-        return Tab()
-
-    def display(self):
-        print('', end='\t')
-
-    def __str__(self):
-        return 'nl'
-
-    def __repr__(self):
-        return str(self)
-
-
 class Runtime:
     def __init__(self, rules):
         self.rules = rules
@@ -253,14 +70,29 @@ class Runtime:
             return self.rules + [query]
         return self.rules
 
-    def execute(self, query):
-        goal = query
-        if isinstance(query, Rule):
-            goal = query.head
+    def evaluate_rules(self, query, goal):
         for rule in self.all_rules(query):
             match = rule.head.match(goal)
             if match is not None:
                 head = rule.head.substitute(match)
                 body = rule.body.substitute(match)
-                for item in body.query(self):
-                    yield head.substitute(body.match(item))
+                if isinstance(body, Arithmetic):
+                    arith = None
+                    for arg in head.args:
+                        if isinstance(arg, Variable) and arg.name == body.name:
+                            arith = head.substitute({arg: body.evaluate()})
+                            break
+                    if arith is not None:
+                        yield arith
+                else:
+                    for item in body.query(self):
+                        yield head.substitute(body.match(item))
+
+    def execute(self, query):
+        goal = query
+        if isinstance(query, Arithmetic):
+            yield query.evaluate()
+        else:
+            if isinstance(query, Rule):
+                goal = query.head
+            yield from self.evaluate_rules(query, goal)

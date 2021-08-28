@@ -22,7 +22,8 @@ class Scanner:
             'fail': TokenType.FAIL,
             'write': TokenType.WRITE,
             'nl': TokenType.NL,
-            'tab': TokenType.TAB
+            'tab': TokenType.TAB,
+            'is': TokenType.IS
         }
         return keywords
 
@@ -150,14 +151,13 @@ class Scanner:
             while not self._peek() == '\n' and \
                   not self._is_at_end():
                 self._advance()
-        elif c == '/':
-            if self._is_next('*'):
-                while not self._is_at_end():
-                    c = self._advance()
-                    if c == '*' and self._is_next('/'):
-                        break
-                    if self._is_at_end():
-                        self._report(self._line, 'Unterminated comment')
+        elif c == '/' and self._is_next('*'):
+            while not self._is_at_end():
+                c = self._advance()
+                if c == '*' and self._is_next('/'):
+                    break
+                if self._is_at_end():
+                    self._report(self._line, 'Unterminated comment')
         elif c == "'":
             self._process_string_literal()
         elif self._is_lowercase_alpha(c):
@@ -169,12 +169,23 @@ class Scanner:
                 self._process_variable()
         elif self._is_uppercase_alpha(c):
             self._process_variable()
+        elif c == '-' and self._is_digit(self._peek()):
+            # TODO: refactor this logic to unary operator
+            self._process_number()
         elif self._is_digit(c):
             self._process_number()
         elif c == '(':
             self._add_token(TokenType.LEFTPAREN)
         elif c == ')':
             self._add_token(TokenType.RIGHTPAREN)
+        elif c == '*':
+            self._add_token(TokenType.STAR)
+        elif c == '/':
+            self._add_token(TokenType.SLASH)
+        elif c == '+':
+            self._add_token(TokenType.PLUS)
+        elif c == '-':
+            self._add_token(TokenType.MINUS)
         elif c == ':':
             if self._is_next('-'):
                 self._add_token(TokenType.COLONMINUS)

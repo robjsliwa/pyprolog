@@ -1,6 +1,8 @@
 from prolog.token_type import TokenType
-from .interpreter import Conjunction, Variable, Term, Rule, TRUE, Number, \
-    Fail, Write, Nl, Tab
+from .interpreter import Conjunction, Rule
+from .types import Arithmetic, Variable, Term, TRUE, Number
+from .builtins import Fail, Write, Nl, Tab
+from .expression import BinaryExpression, PrimaryExpression
 
 
 def default_error_handler(line, message):
@@ -41,6 +43,79 @@ class Parser:
 
     def _is_type(self, token, token_type):
         return token.token_type == token_type
+
+    def _create_variable(self, name, has_arithmetic_exp=None):
+        variable = self._scope.get(name, None)
+        if variable is None:
+            if has_arithmetic_exp is None:
+                variable = Variable(name)
+            else:
+                variable = Arithmetic(name, has_arithmetic_exp)
+            self._scope[name] = variable
+        elif isinstance(variable, Variable) and has_arithmetic_exp is not None:
+            variable = Arithmetic(name, has_arithmetic_exp)
+        return variable
+
+    def _parse_primary(self):
+        token = self._peek()
+
+        if self._is_type(token, TokenType.NUMBER):
+            self._advance()
+            number_value = token.literal
+            return PrimaryExpression(Number(number_value))
+        elif self._is_type(token, TokenType.VARIABLE):
+            self._advance()
+            return PrimaryExpression(
+                self._create_variable(token.lexeme)
+            )
+        elif self._is_type(token, TokenType.LEFTPAREN):
+            self._advance()
+            expr = self._parse_expression()
+
+            prev_token = self._advance()  # consume ')'
+            if prev_token.token_type != TokenType.RIGHTPAREN:
+                self._report(
+                    self._peek().line,
+                    f'Expected ")" after expression: {expr}'
+                )
+            return expr
+
+        self._report(
+            self._peek().line,
+            f'Expected number or variable but got: {token}'
+        )
+
+    def _parse_addition(self):
+        expr = self._parse_multiplication()
+
+        while self._token_matches([TokenType.MINUS, TokenType.PLUS]):
+            self._advance()
+            operator = self._previous().lexeme
+            right = self._parse_multiplication()
+            expr = BinaryExpression(expr, operator, right)
+        return expr
+
+    def _parse_multiplication(self):
+        expr = self._parse_primary()
+
+        while self._token_matches([TokenType.SLASH, TokenType.STAR]):
+            self._advance()
+            operator = self._previous().lexeme
+            right = self._parse_primary()
+            expr = BinaryExpression(expr, operator, right)
+        return expr
+
+    def _parse_expression(self):
+        return self._parse_addition()
+
+    def _parse_arithmetic(self, token):
+        self._advance()  # consume IS
+
+        return self._create_variable(
+            token.lexeme,
+            # self._parse_primary()
+            self._parse_expression()
+        )
 
     def _parse_atom(self):
         token = self._peek()
@@ -92,11 +167,11 @@ class Parser:
             if self._is_type(token, TokenType.UNDERSCORE):
                 return Variable('_')
 
-            variable = self._scope.get(predicate, None)
-            if variable is None:
-                variable = Variable(predicate)
-                self._scope[predicate] = variable
-            return variable
+            if self._is_type(token, TokenType.VARIABLE) and \
+               self._peek().token_type == TokenType.IS:
+                return self._parse_arithmetic(token)
+
+            return self._create_variable(predicate)
 
         if self._is_type(token, TokenType.FAIL):
             return Fail()

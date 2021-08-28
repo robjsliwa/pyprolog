@@ -1,4 +1,5 @@
-from prolog.interpreter import Term, Variable, Runtime
+from prolog.interpreter import Runtime
+from prolog.types import Variable, Term
 from prolog.parser import Parser
 from prolog.scanner import Scanner
 import cProfile
@@ -431,4 +432,131 @@ def test_support_for_string_literals():
 
     for index, item in enumerate(runtime.execute(goal)):
         assert str(item) == expected_results[index]
+        assert str(goal.match(item).get(x)) == expected_bindings[index]
+
+
+def test_simple_arithmetics():
+    input = '''
+    test(Y) :- Y is 5 + 2 * 3 - 1.
+    test2(Z) :- Z is (5 + 2) * (3 - 1).
+    '''
+
+    rules = Parser(
+        Scanner(input).tokenize()
+    ).parse_rules()
+
+    runtime = Runtime(rules)
+
+    goal_text = "test(Y)."
+
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_query()
+
+    x = goal.args[0]
+
+    expected_bindings = ['10.0']
+
+    for index, item in enumerate(runtime.execute(goal)):
+        assert str(goal.match(item).get(x)) == expected_bindings[index]
+
+
+def test_arithmetics_with_grouping():
+    input = '''
+    test(Z) :- Z is (5 + 2) * (3 - 1).
+    '''
+
+    rules = Parser(
+        Scanner(input).tokenize()
+    ).parse_rules()
+
+    runtime = Runtime(rules)
+
+    goal_text = "test(Y)."
+
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_query()
+
+    x = goal.args[0]
+
+    expected_bindings = ['14.0']
+
+    for index, item in enumerate(runtime.execute(goal)):
+        assert str(goal.match(item).get(x)) == expected_bindings[index]
+
+
+def test_arithmetics_with_variables():
+    input = '''
+    c_to_f(C, F) :- F is C * 9 / 5 + 32.
+    '''
+
+    rules = Parser(
+        Scanner(input).tokenize()
+    ).parse_rules()
+
+    runtime = Runtime(rules)
+
+    goal_text = "c_to_f(100, X)."
+
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_query()
+
+    x = goal.args[1]
+
+    expected_bindings = ['212.0']
+
+    for index, item in enumerate(runtime.execute(goal)):
+        assert str(goal.match(item).get(x)) == expected_bindings[index]
+
+    goal_text = "c_to_f(0, X)."
+
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_query()
+
+    x = goal.args[1]
+
+    expected_bindings = ['32.0']
+
+    for index, item in enumerate(runtime.execute(goal)):
+        assert str(goal.match(item).get(x)) == expected_bindings[index]
+
+
+def test_arithmetics_with_variables_same_as_rule():
+    input = '''
+    c_to_f(C, F) :- F is C * 9 / 5 + 32.
+    '''
+
+    rules = Parser(
+        Scanner(input).tokenize()
+    ).parse_rules()
+
+    runtime = Runtime(rules)
+
+    goal_text = "c_to_f(100, F)."
+
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_query()
+
+    x = goal.args[1]
+
+    expected_bindings = ['212.0']
+
+    for index, item in enumerate(runtime.execute(goal)):
+        assert str(goal.match(item).get(x)) == expected_bindings[index]
+
+    goal_text = "c_to_f(0, F)."
+
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_query()
+
+    x = goal.args[1]
+
+    expected_bindings = ['32.0']
+
+    for index, item in enumerate(runtime.execute(goal)):
         assert str(goal.match(item).get(x)) == expected_bindings[index]

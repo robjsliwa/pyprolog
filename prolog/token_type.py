@@ -16,4 +16,9 @@ class TokenType(Enum):
     WRITE = auto(),
     NL = auto(),
     TAB = auto(),
+    IS = auto(),
+    PLUS = auto(),
+    MINUS = auto(),
+    SLASH = auto(),
+    STAR = auto(),
     EOF = auto()
