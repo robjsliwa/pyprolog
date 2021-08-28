@@ -509,7 +509,7 @@ def test_arithmetics_with_variables():
 
     for index, item in enumerate(runtime.execute(goal)):
         assert str(goal.match(item).get(x)) == expected_bindings[index]
-    
+
     goal_text = "c_to_f(0, X)."
 
     goal = Parser(
@@ -522,6 +522,7 @@ def test_arithmetics_with_variables():
 
     for index, item in enumerate(runtime.execute(goal)):
         assert str(goal.match(item).get(x)) == expected_bindings[index]
+
 
 def test_arithmetics_with_variables_same_as_rule():
     input = '''
@@ -546,7 +547,7 @@ def test_arithmetics_with_variables_same_as_rule():
 
     for index, item in enumerate(runtime.execute(goal)):
         assert str(goal.match(item).get(x)) == expected_bindings[index]
-    
+
     goal_text = "c_to_f(0, F)."
 
     goal = Parser(
