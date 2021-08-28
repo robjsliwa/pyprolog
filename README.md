@@ -93,6 +93,40 @@ no
 >
 ```
 
+You can also perform simple arithmetic operations.  For example given following rule:
+
+```
+c_to_f(C, F) :- F is C * 9 / 5 + 32.
+```
+
+You can ask Prolog to convert Celsius to Fahrenheit:
+
+```
+Welcome to Simple Prolog
+ctrl-c to quit
+> c_to_f(0, F).
+F = 32.0
+yes
+> c_to_f(100, F).
+F = 212.0
+yes
+>
+```
+
+You can also ask Prolog REPL to do calculation directly:
+
+```
+Welcome to Simple Prolog
+ctrl-c to quit
+> Z is 4 * 10 - 2 * 4.
+Z = 32.0
+yes
+> Z is 4 * (10 - 2) * 4.
+Z = 128.0
+yes
+>
+```
+
 ## Test
 
 Linter:

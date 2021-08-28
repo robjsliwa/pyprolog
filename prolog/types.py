@@ -124,9 +124,9 @@ class Arithmetic(Variable):
             return value.substitute(bindings)
 
         expression_binder = ExpressionBinder(bindings)
-        self.name = self._bind_name(bindings)
-        self._expression = self._expression.accept(expression_binder)
-        return self
+        name = self._bind_name(bindings)
+        expression = self._expression.accept(expression_binder)
+        return Arithmetic(name, expression)
 
     def evaluate(self):
         val = self._expression.accept(math_interpreter)
