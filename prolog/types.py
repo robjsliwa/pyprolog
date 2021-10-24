@@ -1,5 +1,6 @@
 from functools import reduce
 from .math_interpreter import MathInterpreter
+from .logic_interpreter import LogicInterpreter
 from .expression import Visitor, PrimaryExpression, BinaryExpression
 
 
@@ -92,6 +93,38 @@ class Term:
         return str(self)
 
 
+class Logic():
+    def __init__(self, expression):
+        self._expression = expression
+
+    def match(self, other):
+        bindings = dict()
+        if self != other:
+            bindings[self] = self.evaluate()
+        return bindings
+
+    def substitute(self, bindings):
+        value = bindings.get(self, None)
+        if value is not None:
+            return value.substitute(bindings)
+
+        expression_binder = ExpressionBinder(bindings)
+        expression = self._expression.accept(expression_binder)
+        return Logic(expression)
+
+    def evaluate(self):
+        return self._expression.accept(logic_interpreter)
+
+    def query(self, runtime):
+        yield self.evaluate()
+
+    def __str__(self):
+        return f'{self._expression}'
+
+    def __repr__(self):
+        return str(self)
+
+
 class Arithmetic(Variable):
     def __init__(self, name, expression):
         super().__init__(name)
@@ -158,6 +191,36 @@ class Number(Term):
     def substract(self, number):
         return Number(self.pred - number.pred)
 
+    def equal(self, number):
+        if self.pred == number.pred:
+            return TRUE()
+        return FALSE()
+
+    def not_equal(self, number):
+        if self.pred != number.pred:
+            return TRUE()
+        return FALSE()
+
+    def equal_less(self, number):
+        if self.pred <= number.pred:
+            return TRUE()
+        return FALSE()
+
+    def less(self, number):
+        if self.pred < number.pred:
+            return TRUE()
+        return FALSE()
+
+    def greater_equal(self, number):
+        if self.pred >= number.pred:
+            return TRUE()
+        return FALSE()
+
+    def greater(self, number):
+        if self.pred > number.pred:
+            return TRUE()
+        return FALSE()
+
 
 class TRUE(Term):
     def __init__(self):
@@ -165,6 +228,17 @@ class TRUE(Term):
 
     def substitute(self, bindings):
         return self
+
+    def query(self, runtime):
+        yield self
+
+
+class FALSE(Term):
+    def __init__(self):
+        super().__init__(FALSE)
+
+    def substitute(self, bindings):
+        return {}
 
     def query(self, runtime):
         yield self
@@ -201,3 +275,4 @@ class ExpressionBinder(Visitor):
 
 
 math_interpreter = MathInterpreter()
+logic_interpreter = LogicInterpreter()

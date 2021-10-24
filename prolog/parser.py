@@ -1,6 +1,6 @@
 from prolog.token_type import TokenType
 from .interpreter import Conjunction, Rule
-from .types import Arithmetic, Variable, Term, TRUE, Number
+from .types import Arithmetic, Logic, Variable, Term, TRUE, Number
 from .builtins import Fail, Write, Nl, Tab
 from .expression import BinaryExpression, PrimaryExpression
 
@@ -40,6 +40,11 @@ class Parser:
         if isinstance(token_type, list):
             return self._peek().token_type in token_type
         return self._peek().token_type == token_type
+
+    def _next_token_matches(self, token_type):
+        if isinstance(token_type, list):
+            return self._peek_next().token_type in token_type
+        return self._peek_next().token_type == token_type
 
     def _is_type(self, token, token_type):
         return token.token_type == token_type
@@ -85,6 +90,33 @@ class Parser:
             f'Expected number or variable but got: {token}'
         )
 
+    def _parse_equality(self):
+        expr = self._parse_comperison()
+
+        while self._token_matches(
+            [TokenType.EQUALEQUAL, TokenType.EQUALSLASH]
+        ):
+            self._advance()
+            operator = self._previous().lexeme
+            right = self._parse_comperison()
+            expr = BinaryExpression(expr, operator, right)
+        return expr
+
+    def _parse_comperison(self):
+        expr = self._parse_addition()
+
+        while self._token_matches([
+            TokenType.GREATER,
+            TokenType.GREATEREQUAL,
+            TokenType.LESS,
+            TokenType.EQUALLESS
+        ]):
+            self._advance()
+            operator = self._previous().lexeme
+            right = self._parse_addition()
+            expr = BinaryExpression(expr, operator, right)
+        return expr
+
     def _parse_addition(self):
         expr = self._parse_multiplication()
 
@@ -106,16 +138,18 @@ class Parser:
         return expr
 
     def _parse_expression(self):
-        return self._parse_addition()
+        return self._parse_equality()
 
     def _parse_arithmetic(self, token):
         self._advance()  # consume IS
 
         return self._create_variable(
             token.lexeme,
-            # self._parse_primary()
             self._parse_expression()
         )
+
+    def _parse_logic(self):
+        return Logic(self._parse_equality())
 
     def _parse_atom(self):
         token = self._peek()
@@ -160,6 +194,16 @@ class Parser:
             self._advance()
             return Conjunction(args)
 
+        if self._next_token_matches([
+            TokenType.EQUALEQUAL,
+            TokenType.EQUALSLASH,
+            TokenType.EQUALLESS,
+            TokenType.LESS,
+            TokenType.GREATEREQUAL,
+            TokenType.GREATER
+        ]):
+            return self._parse_logic()
+
         token = self._parse_atom()
         predicate = token.lexeme
         if self._is_type(token, TokenType.VARIABLE) or \
@@ -167,9 +211,9 @@ class Parser:
             if self._is_type(token, TokenType.UNDERSCORE):
                 return Variable('_')
 
-            if self._is_type(token, TokenType.VARIABLE) and \
-               self._peek().token_type == TokenType.IS:
-                return self._parse_arithmetic(token)
+            if self._is_type(token, TokenType.VARIABLE):
+                if self._peek().token_type == TokenType.IS:
+                    return self._parse_arithmetic(token)
 
             return self._create_variable(predicate)
 

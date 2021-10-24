@@ -1,4 +1,4 @@
-from .types import Variable, Term, merge_bindings, Arithmetic
+from .types import Variable, Term, merge_bindings, Arithmetic, Logic, FALSE
 from .builtins import Write, Nl, Tab
 
 
@@ -41,6 +41,8 @@ class Conjunction(Term):
                         bindings
                     )
                     yield from solutions(index + 1, unified)
+                elif isinstance(arg, Logic):
+                    yield arg.substitute(bindings).evaluate()
                 else:
                     for item in runtime.execute(arg.substitute(bindings)):
                         unified = merge_bindings(
@@ -86,7 +88,8 @@ class Runtime:
                         yield arith
                 else:
                     for item in body.query(self):
-                        yield head.substitute(body.match(item))
+                        if not isinstance(item, FALSE):
+                            yield head.substitute(body.match(item))
 
     def execute(self, query):
         goal = query

@@ -12,3 +12,5 @@ test3(Z) :- Z is (5 + 2) * (3 - 1).
 test4 :- Z is 6/2, write(Z).
 c_to_f(C, F) :- F is C * 9 / 5 + 32.
 c_to_fw(C) :- F is C * 9 / 5 + 32, write(F).
+freezing_point(F) :- F == 32.
+freezing(X) :- X =< 32.
