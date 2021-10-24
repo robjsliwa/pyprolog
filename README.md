@@ -129,12 +129,14 @@ yes
 
 Following logical operators are supported:
 
-- ==
-- =/
-- <
-- =<
-- >
-- >=
+```
+==
+=/
+<
+=<
+>
+>=
+```
 
 Here is an example of rule that uses logical operator:
 
