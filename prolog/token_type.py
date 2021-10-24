@@ -21,4 +21,10 @@ class TokenType(Enum):
     MINUS = auto(),
     SLASH = auto(),
     STAR = auto(),
+    GREATER = auto(),
+    LESS = auto(),
+    GREATEREQUAL = auto(),
+    EQUALLESS = auto(),
+    EQUALEQUAL = auto(),
+    EQUALSLASH = auto(),
     EOF = auto()

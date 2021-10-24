@@ -186,6 +186,18 @@ class Scanner:
             self._add_token(TokenType.PLUS)
         elif c == '-':
             self._add_token(TokenType.MINUS)
+        elif c == '=' and self._is_next('='):
+            self._add_token(TokenType.EQUALEQUAL)
+        elif c == '=' and self._is_next('/'):
+            self._add_token(TokenType.EQUALSLASH)
+        elif c == '=' and self._is_next('<'):
+            self._add_token(TokenType.EQUALLESS)
+        elif c == '<':
+            self._add_token(TokenType.LESS)
+        elif c == '>' and self._is_next('='):
+            self._add_token(TokenType.GREATEREQUAL)
+        elif c == '>':
+            self._add_token(TokenType.GREATER)
         elif c == ':':
             if self._is_next('-'):
                 self._add_token(TokenType.COLONMINUS)

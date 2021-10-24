@@ -560,3 +560,187 @@ def test_arithmetics_with_variables_same_as_rule():
 
     for index, item in enumerate(runtime.execute(goal)):
         assert str(goal.match(item).get(x)) == expected_bindings[index]
+
+
+def test_logic_equal():
+    input = '''
+    sum_eq_4(Y) :- X is Y + 2, X == 4.
+    '''
+
+    rules = Parser(
+        Scanner(input).tokenize()
+    ).parse_rules()
+
+    runtime = Runtime(rules)
+
+    goal_text = "sum_eq_4(2)."
+
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_query()
+
+    assert(len(list(runtime.execute(goal))))
+
+    goal_text = "sum_eq_4(3)."
+
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_query()
+
+    assert(not(len(list(runtime.execute(goal)))))
+
+
+def test_logic_not_equal():
+    input = '''
+    sum_eq_4(Y) :- X is Y + 2, X =/ 4.
+    '''
+
+    rules = Parser(
+        Scanner(input).tokenize()
+    ).parse_rules()
+
+    runtime = Runtime(rules)
+
+    goal_text = "sum_eq_4(3)."
+
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_query()
+
+    assert(len(list(runtime.execute(goal))))
+
+    goal_text = "sum_eq_4(2)."
+
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_query()
+
+    assert(not(len(list(runtime.execute(goal)))))
+
+
+def test_logic_greater():
+    input = '''
+    sum_4(Y) :- X is Y + 2, X > 4.
+    '''
+
+    rules = Parser(
+        Scanner(input).tokenize()
+    ).parse_rules()
+
+    runtime = Runtime(rules)
+
+    goal_text = "sum_4(3)."
+
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_query()
+
+    assert(len(list(runtime.execute(goal))))
+
+    goal_text = "sum_4(2)."
+
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_query()
+
+    assert(not(len(list(runtime.execute(goal)))))
+
+
+def test_logic_greater_or_equal():
+    input = '''
+    sum_4(Y) :- X is Y + 2, X >= 4.
+    '''
+
+    rules = Parser(
+        Scanner(input).tokenize()
+    ).parse_rules()
+
+    runtime = Runtime(rules)
+
+    goal_text = "sum_4(3)."
+
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_query()
+
+    assert(len(list(runtime.execute(goal))))
+
+    goal_text = "sum_4(2)."
+
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_query()
+
+    assert(len(list(runtime.execute(goal))))
+
+    goal_text = "sum_4(1)."
+
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_query()
+
+    assert(not(len(list(runtime.execute(goal)))))
+
+
+def test_logic_less():
+    input = '''
+    sum_4(Y) :- X is Y + 2, X < 4.
+    '''
+
+    rules = Parser(
+        Scanner(input).tokenize()
+    ).parse_rules()
+
+    runtime = Runtime(rules)
+
+    goal_text = "sum_4(1)."
+
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_query()
+
+    assert(len(list(runtime.execute(goal))))
+
+    goal_text = "sum_4(2)."
+
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_query()
+
+    assert(not(len(list(runtime.execute(goal)))))
+
+
+def test_logic_less_or_equal():
+    input = '''
+    sum_4(Y) :- X is Y + 2, X =< 4.
+    '''
+
+    rules = Parser(
+        Scanner(input).tokenize()
+    ).parse_rules()
+
+    runtime = Runtime(rules)
+
+    goal_text = "sum_4(1)."
+
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_query()
+
+    assert(len(list(runtime.execute(goal))))
+
+    goal_text = "sum_4(2)."
+
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_query()
+
+    assert(len(list(runtime.execute(goal))))
+
+    goal_text = "sum_4(3)."
+
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_query()
+
+    assert(not(len(list(runtime.execute(goal)))))

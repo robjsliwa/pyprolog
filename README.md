@@ -127,6 +127,43 @@ yes
 >
 ```
 
+Following logical operators are supported:
+
+```
+==
+=/
+<
+=<
+>
+>=
+```
+
+Here is an example of rule that uses logical operator:
+
+```
+freezing(X) :- X =< 32.
+```
+
+```
+Welcome to Simple Prolog
+ctrl-c to quit
+> freezing(30).
+yes
+>
+```
+
+Or you can use it directly from REPL:
+
+```
+Welcome to Simple Prolog
+ctrl-c to quit
+> X is 2+2, X > 1.
+yes
+> X is 2+2, X > 5.
+no
+>   
+```
+
 ## Test
 
 Linter:
