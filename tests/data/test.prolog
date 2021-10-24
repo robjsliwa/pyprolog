@@ -14,3 +14,7 @@ c_to_f(C, F) :- F is C * 9 / 5 + 32.
 c_to_fw(C) :- F is C * 9 / 5 + 32, write(F).
 freezing_point(F) :- F == 32.
 freezing(X) :- X =< 32.
+% not_32(F) :- F =/ 32.
+sum_greater_4(Y) :- X is Y + 3, X > 4.
+sum_less_4 :- X is 1 + 1, X < 4.
+sum_greater_eq_4 :- X is 2 + 2, X >= 4.

@@ -16,7 +16,7 @@ class LogicInterpreter(Visitor):
             raise InterpreterError(f'left {left} and right {right} operand must have the same type')  # noqa
         if operand == '==':
             return left.equal(right)
-        elif operand == '/=':
+        elif operand == '=/':
             return left.not_equal(right)
         elif operand == '=<':
             return left.equal_less(right)
