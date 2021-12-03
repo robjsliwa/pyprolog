@@ -84,7 +84,9 @@ def run_repl(runtime):
                 is_first_iter = False
                 has_solution = False
                 for solution in runtime.execute(goal):
-                    has_solution = True
+                    print(f'sol: {solution}')
+                    if solution is not None:
+                        has_solution = True
                     if is_first_iter is False:
                         is_first_iter = True
                     else:

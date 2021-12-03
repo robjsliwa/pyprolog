@@ -57,3 +57,16 @@ look :-
     list_things(Place),
     write('You can go to:'), nl,
     list_connections(Place).
+
+goto(Place) :-
+    can_go(Place),
+    % move(Place),
+    look.
+
+can_go(Place) :-
+    here(X),
+    connect(X, Place).
+can_go(_) :-
+    write('You cannot get there from here.'),
+    nl,
+    fail.

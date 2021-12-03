@@ -1,5 +1,5 @@
 from .types import Variable, Term, merge_bindings, Arithmetic, Logic, FALSE
-from .builtins import Write, Nl, Tab
+from .builtins import Write, Nl, Tab, Fail
 
 
 class Rule:
@@ -25,13 +25,20 @@ class Conjunction(Term):
             return True
         return False
 
+    def _is_fail(self, arg):
+        if isinstance(arg, Fail):
+            return True
+        return False
+
     def query(self, runtime):
         def solutions(index, bindings):
             if index >= len(self.args):
                 yield self.substitute(bindings)
             else:
                 arg = self.args[index]
-                if self._is_builtin(arg):
+                if self._is_fail(arg):
+                    yield FALSE()
+                elif self._is_builtin(arg):
                     arg.substitute(bindings).display()
                     yield from solutions(index + 1, bindings)
                 elif isinstance(arg, Arithmetic):
@@ -90,6 +97,8 @@ class Runtime:
                     for item in body.query(self):
                         if not isinstance(item, FALSE):
                             yield head.substitute(body.match(item))
+                        elif isinstance(item, FALSE):
+                            yield None
 
     def execute(self, query):
         goal = query
