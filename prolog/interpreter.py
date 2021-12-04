@@ -1,3 +1,4 @@
+import io
 from .types import Variable, Term, merge_bindings, Arithmetic, Logic, FALSE
 from .builtins import Write, Nl, Tab, Fail
 
@@ -39,7 +40,7 @@ class Conjunction(Term):
                 if self._is_fail(arg):
                     yield FALSE()
                 elif self._is_builtin(arg):
-                    arg.substitute(bindings).display()
+                    arg.substitute(bindings).display(runtime.stream_write)
                     yield from solutions(index + 1, bindings)
                 elif isinstance(arg, Arithmetic):
                     val = arg.substitute(bindings).evaluate()
@@ -73,6 +74,25 @@ class Conjunction(Term):
 class Runtime:
     def __init__(self, rules):
         self.rules = rules
+        self.stream = io.StringIO()
+        self.stream_pos = 0
+
+    def __del__(self):
+        self.stream.close()
+
+    def stream_write(self, text):
+        self.stream.write(text)
+
+    def stream_read(self):
+        self.stream.seek(self.stream_pos)
+        line = self.stream.read()
+        self.stream_pos = self.stream.tell()
+        return line
+
+    def _reset_stream(self):
+        self.stream.seek(0)
+        self.stream.truncate(0)
+        self.stream_pos = 0
 
     def all_rules(self, query):
         if isinstance(query, Rule):
@@ -98,9 +118,11 @@ class Runtime:
                         if not isinstance(item, FALSE):
                             yield head.substitute(body.match(item))
                         elif isinstance(item, FALSE):
-                            yield None
+                            # yield None
+                            yield item
 
     def execute(self, query):
+        self._reset_stream()
         goal = query
         if isinstance(query, Arithmetic):
             yield query.evaluate()
