@@ -101,6 +101,8 @@ def run_repl(runtime):
                 if has_solution:
                     print('yes')
                 else:
+                    if not is_first_iter:
+                        print(runtime.stream_read(), end='')
                     print('no')
             except IndexError:
                 print('Unterminated input')
