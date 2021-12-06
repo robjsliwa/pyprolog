@@ -1,5 +1,5 @@
 from prolog.interpreter import Runtime
-from prolog.types import Variable, Term
+from prolog.types import Variable, Term, FALSE
 from prolog.parser import Parser
 from prolog.scanner import Scanner
 import cProfile
@@ -223,7 +223,7 @@ def test_fail_builtin():
     has_solution = False
     for index, item in enumerate(runtime.execute(goal)):
         print(f'item: {item}')
-        if item is not None:
+        if not isinstance(item, FALSE):
             has_solution = True
             assert str(goal.head.match(item).get(X)) == \
                 expected_binding[index]['X']
@@ -581,7 +581,8 @@ def test_logic_equal():
         Scanner(goal_text).tokenize()
     ).parse_query()
 
-    assert(len([s for s in runtime.execute(goal) if s]))
+    assert(
+        len([s for s in runtime.execute(goal) if not isinstance(s, FALSE)]))  # noqa
 
     goal_text = "sum_eq_4(3)."
 
@@ -589,7 +590,8 @@ def test_logic_equal():
         Scanner(goal_text).tokenize()
     ).parse_query()
 
-    assert(not(len([s for s in runtime.execute(goal) if s])))
+    assert(
+        not(len([s for s in runtime.execute(goal) if not isinstance(s, FALSE)])))  # noqa
 
 
 def test_logic_not_equal():
@@ -609,7 +611,7 @@ def test_logic_not_equal():
         Scanner(goal_text).tokenize()
     ).parse_query()
 
-    assert(len([s for s in runtime.execute(goal)if s]))
+    assert(len([s for s in runtime.execute(goal)if not isinstance(s, FALSE)]))  # noqa
 
     goal_text = "sum_eq_4(2)."
 
@@ -617,7 +619,7 @@ def test_logic_not_equal():
         Scanner(goal_text).tokenize()
     ).parse_query()
 
-    assert(not(len([s for s in runtime.execute(goal) if s])))
+    assert(not(len([s for s in runtime.execute(goal) if not isinstance(s, FALSE)])))  # noqa
 
 
 def test_logic_greater():
@@ -637,7 +639,7 @@ def test_logic_greater():
         Scanner(goal_text).tokenize()
     ).parse_query()
 
-    assert(len([s for s in runtime.execute(goal) if s]))
+    assert(len([s for s in runtime.execute(goal) if not isinstance(s, FALSE)]))  # noqa
 
     goal_text = "sum_4(2)."
 
@@ -645,7 +647,7 @@ def test_logic_greater():
         Scanner(goal_text).tokenize()
     ).parse_query()
 
-    assert(not(len([s for s in runtime.execute(goal) if s])))
+    assert(not(len([s for s in runtime.execute(goal) if not isinstance(s, FALSE)])))  # noqa
 
 
 def test_logic_greater_or_equal():
@@ -665,7 +667,7 @@ def test_logic_greater_or_equal():
         Scanner(goal_text).tokenize()
     ).parse_query()
 
-    assert(len([s for s in runtime.execute(goal) if s]))
+    assert(len([s for s in runtime.execute(goal) if not isinstance(s, FALSE)]))  # noqa
 
     goal_text = "sum_4(2)."
 
@@ -673,7 +675,7 @@ def test_logic_greater_or_equal():
         Scanner(goal_text).tokenize()
     ).parse_query()
 
-    assert(len([s for s in runtime.execute(goal) if s]))
+    assert(len([s for s in runtime.execute(goal) if not isinstance(s, FALSE)]))  # noqa
 
     goal_text = "sum_4(1)."
 
@@ -681,7 +683,7 @@ def test_logic_greater_or_equal():
         Scanner(goal_text).tokenize()
     ).parse_query()
 
-    assert(not(len([s for s in runtime.execute(goal) if s])))
+    assert(not(len([s for s in runtime.execute(goal) if not isinstance(s, FALSE)])))  # noqa
 
 
 def test_logic_less():
@@ -701,7 +703,7 @@ def test_logic_less():
         Scanner(goal_text).tokenize()
     ).parse_query()
 
-    assert(len([s for s in runtime.execute(goal) if s]))
+    assert(len([s for s in runtime.execute(goal) if not isinstance(s, FALSE)]))  # noqa
 
     goal_text = "sum_4(2)."
 
@@ -709,7 +711,7 @@ def test_logic_less():
         Scanner(goal_text).tokenize()
     ).parse_query()
 
-    assert(not(len([s for s in runtime.execute(goal) if s])))
+    assert(not(len([s for s in runtime.execute(goal) if not isinstance(s, FALSE)])))  # noqa
 
 
 def test_logic_less_or_equal():
@@ -729,7 +731,7 @@ def test_logic_less_or_equal():
         Scanner(goal_text).tokenize()
     ).parse_query()
 
-    assert(len([s for s in runtime.execute(goal) if s]))
+    assert(len([s for s in runtime.execute(goal) if not isinstance(s, FALSE)]))  # noqa
 
     goal_text = "sum_4(2)."
 
@@ -737,7 +739,7 @@ def test_logic_less_or_equal():
         Scanner(goal_text).tokenize()
     ).parse_query()
 
-    assert(len([s for s in runtime.execute(goal) if s]))
+    assert(len([s for s in runtime.execute(goal) if not isinstance(s, FALSE)]))  # noqa
 
     goal_text = "sum_4(3)."
 
@@ -745,4 +747,4 @@ def test_logic_less_or_equal():
         Scanner(goal_text).tokenize()
     ).parse_query()
 
-    assert(not(len([s for s in runtime.execute(goal) if s])))
+    assert(not(len([s for s in runtime.execute(goal) if not isinstance(s, FALSE)])))  # noqa
