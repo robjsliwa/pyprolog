@@ -89,7 +89,7 @@ class Runtime:
         self.stream_pos = self.stream.tell()
         return line
 
-    def _reset_stream(self):
+    def reset_stream(self):
         self.stream.seek(0)
         self.stream.truncate(0)
         self.stream_pos = 0
@@ -122,7 +122,6 @@ class Runtime:
                             yield item
 
     def execute(self, query):
-        self._reset_stream()
         goal = query
         if isinstance(query, Arithmetic):
             yield query.evaluate()

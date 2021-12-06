@@ -20,7 +20,7 @@ door(office, hall).
 door(kitchen, office).
 door(hall, 'dinning room').
 door(kitchen, cellar).
-door('dinninr room', kitchen).
+door('dinning room', kitchen).
 
 % other facts
 edible(apple).

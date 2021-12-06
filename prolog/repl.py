@@ -83,6 +83,8 @@ def run_repl(runtime):
                     Scanner(query).tokenize()
                 ).parse_query()
 
+                runtime.reset_stream()
+
                 is_first_iter = False
                 has_solution = False
                 for solution in runtime.execute(goal):
