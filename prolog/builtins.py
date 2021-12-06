@@ -30,9 +30,9 @@ class Write:
         ))
         return result
 
-    def display(self):
+    def display(self, stream_writer):
         for arg in self.args:
-            print(arg, end='')
+            stream_writer(str(arg))
 
     def __str__(self):
         if len(self.args) == 0:
@@ -54,8 +54,8 @@ class Nl:
     def substitute(self, bindings):
         return Nl()
 
-    def display(self):
-        print('')
+    def display(self, stream_writer):
+        stream_writer('\n')
 
     def __str__(self):
         return 'nl'
@@ -74,8 +74,8 @@ class Tab:
     def substitute(self, bindings):
         return Tab()
 
-    def display(self):
-        print('', end='\t')
+    def display(self, stream_writer):
+        stream_writer('\t')
 
     def __str__(self):
         return 'nl'

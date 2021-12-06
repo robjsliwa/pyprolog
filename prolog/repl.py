@@ -9,6 +9,7 @@ from .parser import Parser
 from .scanner import Scanner
 from .interpreter import Variable, Rule
 from .errors import InterpreterError
+from .types import FALSE
 
 
 init(autoreset=True)
@@ -48,7 +49,8 @@ def warning(input):
     return f'{Fore.YELLOW}{input}'
 
 
-def display_variables(goal, solution):
+def display_variables(goal, solution, stream_reader):
+    print(stream_reader(), end='')
     has_variables = False
     if isinstance(goal, Rule):
         goal = goal.head
@@ -84,7 +86,8 @@ def run_repl(runtime):
                 is_first_iter = False
                 has_solution = False
                 for solution in runtime.execute(goal):
-                    has_solution = True
+                    if not isinstance(solution, FALSE):
+                        has_solution = True
                     if is_first_iter is False:
                         is_first_iter = True
                     else:
@@ -94,10 +97,12 @@ def run_repl(runtime):
                         else:
                             has_solution = False
                             break
-                    display_variables(goal, solution)
+                    display_variables(goal, solution, runtime.stream_read)
                 if has_solution:
                     print('yes')
                 else:
+                    if not is_first_iter:
+                        print(runtime.stream_read(), end='')
                     print('no')
             except IndexError:
                 print('Unterminated input')
