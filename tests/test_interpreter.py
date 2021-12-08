@@ -1,5 +1,5 @@
-from prolog.interpreter import Runtime
-from prolog.types import Variable, Term, FALSE
+from prolog.interpreter import Runtime, Rule
+from prolog.types import Variable, Term, FALSE, TRUE
 from prolog.parser import Parser
 from prolog.scanner import Scanner
 import cProfile
@@ -748,3 +748,61 @@ def test_logic_less_or_equal():
     ).parse_query()
 
     assert(not(len([s for s in runtime.execute(goal) if not isinstance(s, FALSE)])))  # noqa
+
+
+def test_insert_entry_left():
+    input = '''
+    block(a).
+
+    room(kitchen).
+    room(hallway).
+    room('dinning room').
+
+    location(table, kitchen).
+    location(chair, 'dinning room').
+
+    here(kitchen).
+
+    take(X) :- here(Y), location(X, Y).
+    '''
+
+    rules = Parser(
+        Scanner(input).tokenize()
+    ).parse_rules()
+
+    runtime = Runtime(rules)
+
+    head = Term('room', Term('bathroom'))
+    room_rule = Rule(head, TRUE())
+    runtime.insert_entry_left(room_rule)
+
+    assert(room_rule == runtime.rules[1])
+
+
+def test_insert_entry_right():
+    input = '''
+    block(a).
+
+    room(kitchen).
+    room(hallway).
+    room('dinning room').
+
+    location(table, kitchen).
+    location(chair, 'dinning room').
+
+    here(kitchen).
+
+    take(X) :- here(Y), location(X, Y).
+    '''
+
+    rules = Parser(
+        Scanner(input).tokenize()
+    ).parse_rules()
+
+    runtime = Runtime(rules)
+
+    head = Term('room', Term('bathroom'))
+    room_rule = Rule(head, TRUE())
+    runtime.insert_entry_right(room_rule)
+
+    assert(room_rule == runtime.rules[4])

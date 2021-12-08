@@ -94,6 +94,24 @@ class Runtime:
         self.stream.truncate(0)
         self.stream_pos = 0
 
+    def insert_entry_left(self, entry):
+        for i, item in enumerate(self.rules):
+            if entry.head.pred == item.head.pred:
+                self.rules.insert(i, entry)
+                return
+        self.rules.append(entry)
+
+    def insert_entry_right(self, entry):
+        last_index = -1
+        for i, item in enumerate(self.rules):
+            if entry.head.pred == item.head.pred:
+                last_index = i
+
+        if last_index == -1:
+            self.rules.append(entry)
+        else:
+            self.rules.insert(last_index+1, entry)
+
     def all_rules(self, query):
         if isinstance(query, Rule):
             return self.rules + [query]
