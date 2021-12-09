@@ -94,14 +94,14 @@ class Runtime:
         self.stream.truncate(0)
         self.stream_pos = 0
 
-    def insert_entry_left(self, entry):
+    def insert_rule_left(self, entry):
         for i, item in enumerate(self.rules):
             if entry.head.pred == item.head.pred:
                 self.rules.insert(i, entry)
                 return
         self.rules.append(entry)
 
-    def insert_entry_right(self, entry):
+    def insert_rule_right(self, entry):
         last_index = -1
         for i, item in enumerate(self.rules):
             if entry.head.pred == item.head.pred:
@@ -111,6 +111,19 @@ class Runtime:
             self.rules.append(entry)
         else:
             self.rules.insert(last_index+1, entry)
+
+    def remove_rule(self, rule):
+        for i, item in enumerate(self.rules):
+            if rule.head.pred == item.head.pred and \
+               len(rule.head.args) == len(item.head.args) and \
+               all([
+                   x.pred == y.pred if isinstance(x, Term) and isinstance(y, Term)  # noqa
+                   else x.name == y.name if isinstance(x, Variable) and isinstance(y, Variable)  # noqa
+                   else False
+                   for x, y in zip(rule.head.args, item.head.args)
+                    ]):
+                self.rules.pop(i)
+                break
 
     def all_rules(self, query):
         if isinstance(query, Rule):

@@ -750,7 +750,7 @@ def test_logic_less_or_equal():
     assert(not(len([s for s in runtime.execute(goal) if not isinstance(s, FALSE)])))  # noqa
 
 
-def test_insert_entry_left():
+def test_insert_rule_left():
     input = '''
     block(a).
 
@@ -774,12 +774,12 @@ def test_insert_entry_left():
 
     head = Term('room', Term('bathroom'))
     room_rule = Rule(head, TRUE())
-    runtime.insert_entry_left(room_rule)
+    runtime.insert_rule_left(room_rule)
 
     assert(room_rule == runtime.rules[1])
 
 
-def test_insert_entry_right():
+def test_insert_rule_right():
     input = '''
     block(a).
 
@@ -803,6 +803,94 @@ def test_insert_entry_right():
 
     head = Term('room', Term('bathroom'))
     room_rule = Rule(head, TRUE())
-    runtime.insert_entry_right(room_rule)
+    runtime.insert_rule_right(room_rule)
 
     assert(room_rule == runtime.rules[4])
+
+
+def test_remove_rule():
+    input = '''
+    block(a).
+
+    room(kitchen).
+    room(hallway).
+    room(bathroom).
+    room('dinning room').
+
+    location(table, kitchen).
+    location(chair, 'dinning room').
+
+    here(kitchen).
+
+    take(X) :- here(Y), location(X, Y).
+    '''
+
+    rules = Parser(
+        Scanner(input).tokenize()
+    ).parse_rules()
+
+    runtime = Runtime(rules)
+    original_rules_len = len(runtime.rules)
+
+    goal_text = "room(bathroom)."
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_query()
+
+    assert(list(runtime.execute(goal)))
+
+    head = Term('room', Term('bathroom'))
+    room_rule = Rule(head, TRUE())
+    runtime.remove_rule(room_rule)
+
+    assert(original_rules_len - 1 == len(runtime.rules))
+
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_query()
+
+    assert(not(list(runtime.execute(goal))))
+
+
+def test_remove_complex_rule():
+    input = '''
+    block(a).
+
+    room(kitchen).
+    room(hallway).
+    room(bathroom).
+    room('dinning room').
+
+    location(table, kitchen).
+    location(chair, 'dinning room').
+
+    here(kitchen).
+
+    take(X) :- here(Y), location(X, Y).
+    '''
+
+    rules = Parser(
+        Scanner(input).tokenize()
+    ).parse_rules()
+
+    runtime = Runtime(rules)
+    original_rules_len = len(runtime.rules)
+
+    goal_text = "take(X)."
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_query()
+
+    assert(list(runtime.execute(goal)))
+
+    head = Term('take', Variable('X'))
+    take_rule = Rule(head, TRUE())
+    runtime.remove_rule(take_rule)
+
+    assert(original_rules_len - 1 == len(runtime.rules))
+
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_query()
+
+    assert(not(list(runtime.execute(goal))))
