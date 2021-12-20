@@ -27,4 +27,7 @@ class TokenType(Enum):
     EQUALLESS = auto(),
     EQUALEQUAL = auto(),
     EQUALSLASH = auto(),
+    RETRACT = auto(),
+    ASSERTA = auto(),
+    ASSERTZ = auto(),
     EOF = auto()

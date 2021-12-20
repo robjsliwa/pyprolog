@@ -894,3 +894,44 @@ def test_remove_complex_rule():
     ).parse_query()
 
     assert(not(list(runtime.execute(goal))))
+
+
+def test_retract_rule():
+    input = '''
+    block(a).
+
+    room(kitchen).
+    room(hallway).
+    room(bathroom).
+    room('dinning room').
+
+    location(table, kitchen).
+    location(chair, 'dinning room').
+
+    here(kitchen).
+
+    take(X) :- here(Y), location(X, Y).
+    disappear :- retract(here(_)).
+    move(Place) :- retract(here(_)), asserta(here(Place)).
+    '''
+
+    rules = Parser(
+        Scanner(input).tokenize()
+    ).parse_rules()
+
+    runtime = Runtime(rules)
+    original_rules_len = len(runtime.rules)
+
+    goal_text = "disappear."
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_query()
+    runtime.execute(goal)
+    assert(original_rules_len - 1 == len(runtime.rules))
+
+    goal_text = "here(kitchen)."
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_query()
+
+    assert(not(list(runtime.execute(goal))))

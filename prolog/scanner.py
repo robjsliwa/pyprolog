@@ -23,7 +23,10 @@ class Scanner:
             'write': TokenType.WRITE,
             'nl': TokenType.NL,
             'tab': TokenType.TAB,
-            'is': TokenType.IS
+            'is': TokenType.IS,
+            'retract': TokenType.RETRACT,
+            'asserta': TokenType.ASSERTA,
+            'assertz': TokenType.ASSERTZ
         }
         return keywords
 

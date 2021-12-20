@@ -1,6 +1,7 @@
 import io
-from .types import Variable, Term, merge_bindings, Arithmetic, Logic, FALSE
-from .builtins import Write, Nl, Tab, Fail
+from .types import Variable, Term, merge_bindings, Arithmetic, Logic, \
+    FALSE, TRUE
+from .builtins import Write, Nl, Tab, Fail, Retract, AssertA, AssertZ
 
 
 class Rule:
@@ -26,6 +27,21 @@ class Conjunction(Term):
             return True
         return False
 
+    def _is_db_buildin(self, arg):
+        if isinstance(arg, Retract) or \
+           isinstance(arg, AssertA) or \
+           isinstance(arg, AssertZ):
+            return True
+        return False
+
+    def _db_action(self, arg, runtime):
+        if isinstance(arg, Retract):
+            return runtime.remove_rule
+        if isinstance(arg, AssertA):
+            return runtime.insert_rule_left
+        if isinstance(arg, AssertZ):
+            return runtime.insert_rule_right
+
     def _is_fail(self, arg):
         if isinstance(arg, Fail):
             return True
@@ -41,6 +57,22 @@ class Conjunction(Term):
                     yield FALSE()
                 elif self._is_builtin(arg):
                     arg.substitute(bindings).display(runtime.stream_write)
+                    yield from solutions(index + 1, bindings)
+                elif self._is_db_buildin(arg):
+                    param_bound = list(arg.arg.query(runtime))
+                    if param_bound:
+                        param_bound = param_bound[0]
+                        unified = merge_bindings(
+                            arg.match(param_bound),
+                            bindings
+                        )
+                        arg.substitute(unified).execute(
+                            self._db_action(arg, runtime)
+                        )
+                    else:
+                        arg.execute(
+                            self._db_action(arg, runtime)
+                        )
                     yield from solutions(index + 1, bindings)
                 elif isinstance(arg, Arithmetic):
                     val = arg.substitute(bindings).evaluate()
@@ -95,6 +127,8 @@ class Runtime:
         self.stream_pos = 0
 
     def insert_rule_left(self, entry):
+        if isinstance(entry, Term):
+            entry = Rule(entry, TRUE())
         for i, item in enumerate(self.rules):
             if entry.head.pred == item.head.pred:
                 self.rules.insert(i, entry)
@@ -102,6 +136,8 @@ class Runtime:
         self.rules.append(entry)
 
     def insert_rule_right(self, entry):
+        if isinstance(entry, Term):
+            entry = Rule(entry, TRUE())
         last_index = -1
         for i, item in enumerate(self.rules):
             if entry.head.pred == item.head.pred:
@@ -113,6 +149,8 @@ class Runtime:
             self.rules.insert(last_index+1, entry)
 
     def remove_rule(self, rule):
+        if isinstance(rule, Term):
+            rule = Rule(rule, TRUE())
         for i, item in enumerate(self.rules):
             if rule.head.pred == item.head.pred and \
                len(rule.head.args) == len(item.head.args) and \

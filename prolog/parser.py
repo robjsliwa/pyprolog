@@ -1,13 +1,20 @@
 from prolog.token_type import TokenType
 from .interpreter import Conjunction, Rule
 from .types import Arithmetic, Logic, Variable, Term, TRUE, Number
-from .builtins import Fail, Write, Nl, Tab
+from .builtins import Fail, Write, Nl, Tab, Retract, AssertA, AssertZ
 from .expression import BinaryExpression, PrimaryExpression
 
 
 def default_error_handler(line, message):
     print(f'Line[{line}] Error: {message}')
     raise Exception('Parser error')
+
+
+def is_single_param_buildin(token_type):
+    st = set([TokenType.RETRACT, TokenType.ASSERTA, TokenType.ASSERTZ])
+    if token_type in st:
+        return True
+    return False
 
 
 class Parser:
@@ -161,6 +168,9 @@ class Parser:
             TokenType.WRITE,
             TokenType.NL,
             TokenType.TAB,
+            TokenType.RETRACT,
+            TokenType.ASSERTA,
+            TokenType.ASSERTZ,
             TokenType.ATOM
         ]):
             self._report(token.line, f'Bad atom name: {token.lexeme}')
@@ -176,6 +186,41 @@ class Parser:
 
         self._advance()
         return token
+
+    def _parse_buildin_single_arg(self, predicate, args):
+        if len(args) != 1:
+            self._report(
+                self._peek().line,
+                f'{predicate} requires exactly one argument'
+            )
+        if predicate == 'retract':
+            return Retract(args[0])
+        if predicate == 'asserta':
+            return AssertA(args[0])
+        if predicate == 'assertz':
+            return AssertZ(args[0])
+        # if self._token_matches(TokenType.LEFTPAREN):
+        #     self._advance()
+        #     arg = self._parse_term()
+        #     if not self._token_matches(TokenType.RIGHTPAREN):
+        #         self._report(
+        #             self._peek().line,
+        #             f'Expecter ) in term {predicate} but got {self._peek()}')
+        #     self._advance()
+        #     if predicate == 'retract':
+        #         return Retract(arg)
+        #     if predicate == 'asserta':
+        #         return AssertA(arg)
+        #     if predicate == 'assertz':
+        #         return AssertZ(arg)
+        #     self._report(
+        #         self._peek().line,
+        #         f'Expected buildin/1 but got {predicate}'
+        #     )
+        # else:
+        #     self._report(
+        #             self._peek().line,
+        #             f'Expecter ( in term {predicate} but got {self._peek()}')
 
     def _parse_term(self):
         if self._token_matches(TokenType.LEFTPAREN):
@@ -247,6 +292,9 @@ class Parser:
                 self._advance()
 
         self._advance()
+
+        if is_single_param_buildin(token.token_type):
+            return self._parse_buildin_single_arg(predicate, args)
 
         if self._is_type(token, TokenType.WRITE):
             return Write(*args)

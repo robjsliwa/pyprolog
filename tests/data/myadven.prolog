@@ -58,9 +58,15 @@ look :-
     write('You can go to:'), nl,
     list_connections(Place).
 
+disappear :- retract(here(_)).
+
+move(Place) :-
+    retract(here(_)),
+    asserta(here(Place)).
+
 goto(Place) :-
     can_go(Place),
-    % move(Place),
+    move(Place),
     look.
 
 can_go(Place) :-
