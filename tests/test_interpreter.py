@@ -935,6 +935,7 @@ def test_retract_rule():
 
     assert(not(list(runtime.execute(goal))))
 
+
 def test_retract_and_asserta_rule():
     input = '''
     block(a).
@@ -981,6 +982,7 @@ def test_retract_and_asserta_rule():
     ).parse_query()
 
     assert(list(runtime.execute(goal)))
+
 
 def test_assertz_rule():
     input = '''

@@ -94,7 +94,7 @@ class DatabaseOp(ABC):
         if self != other:
             bindings[self] = other
         return bindings
-    
+
     @abstractmethod
     def substitute(self, bindings):
         pass

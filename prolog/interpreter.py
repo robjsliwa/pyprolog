@@ -51,7 +51,7 @@ class Conjunction(Term):
                     arg.substitute(bindings).display(runtime.stream_write)
                     yield from solutions(index + 1, bindings)
                 elif self._is_db_builtin(arg):
-                    _ = list(arg.query(runtime, bindings))  # consume to advance
+                    _ = list(arg.query(runtime, bindings))  # consume
                     yield from solutions(index + 1, bindings)
                 elif isinstance(arg, Arithmetic):
                     val = arg.substitute(bindings).evaluate()
