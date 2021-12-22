@@ -1,6 +1,7 @@
 import io
-from .types import Variable, Term, merge_bindings, Arithmetic, Logic, FALSE
-from .builtins import Write, Nl, Tab, Fail
+from .types import Variable, Term, merge_bindings, Arithmetic, Logic, \
+    FALSE, TRUE
+from .builtins import Write, Nl, Tab, Fail, Retract, AssertA, AssertZ
 
 
 class Rule:
@@ -26,6 +27,13 @@ class Conjunction(Term):
             return True
         return False
 
+    def _is_db_builtin(self, arg):
+        if isinstance(arg, Retract) or \
+           isinstance(arg, AssertA) or \
+           isinstance(arg, AssertZ):
+            return True
+        return False
+
     def _is_fail(self, arg):
         if isinstance(arg, Fail):
             return True
@@ -41,6 +49,9 @@ class Conjunction(Term):
                     yield FALSE()
                 elif self._is_builtin(arg):
                     arg.substitute(bindings).display(runtime.stream_write)
+                    yield from solutions(index + 1, bindings)
+                elif self._is_db_builtin(arg):
+                    _ = list(arg.query(runtime, bindings))  # consume
                     yield from solutions(index + 1, bindings)
                 elif isinstance(arg, Arithmetic):
                     val = arg.substitute(bindings).evaluate()
@@ -89,15 +100,53 @@ class Runtime:
         self.stream_pos = self.stream.tell()
         return line
 
-    def _reset_stream(self):
+    def reset_stream(self):
         self.stream.seek(0)
         self.stream.truncate(0)
         self.stream_pos = 0
 
+    def insert_rule_left(self, entry):
+        if isinstance(entry, Term):
+            entry = Rule(entry, TRUE())
+        for i, item in enumerate(self.rules):
+            if entry.head.pred == item.head.pred:
+                self.rules.insert(i, entry)
+                return
+        self.rules.append(entry)
+
+    def insert_rule_right(self, entry):
+        if isinstance(entry, Term):
+            entry = Rule(entry, TRUE())
+        last_index = -1
+        for i, item in enumerate(self.rules):
+            if entry.head.pred == item.head.pred:
+                last_index = i
+
+        if last_index == -1:
+            self.rules.append(entry)
+        else:
+            self.rules.insert(last_index+1, entry)
+
+    def remove_rule(self, rule):
+        if isinstance(rule, Term):
+            rule = Rule(rule, TRUE())
+        for i, item in enumerate(self.rules):
+            if rule.head.pred == item.head.pred and \
+               len(rule.head.args) == len(item.head.args) and \
+               all([
+                   x.pred == y.pred if isinstance(x, Term) and isinstance(y, Term)  # noqa
+                   else x.name == y.name if isinstance(x, Variable) and isinstance(y, Variable)  # noqa
+                   else False
+                   for x, y in zip(rule.head.args, item.head.args)
+                    ]):
+                self.rules.pop(i)
+                break
+
     def all_rules(self, query):
+        rules = self.rules[:]
         if isinstance(query, Rule):
-            return self.rules + [query]
-        return self.rules
+            return rules + [query]
+        return rules
 
     def evaluate_rules(self, query, goal):
         for rule in self.all_rules(query):
@@ -122,7 +171,6 @@ class Runtime:
                             yield item
 
     def execute(self, query):
-        self._reset_stream()
         goal = query
         if isinstance(query, Arithmetic):
             yield query.evaluate()

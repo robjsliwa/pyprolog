@@ -1,5 +1,5 @@
-from prolog.interpreter import Runtime
-from prolog.types import Variable, Term, FALSE
+from prolog.interpreter import Runtime, Rule
+from prolog.types import Variable, Term, FALSE, TRUE
 from prolog.parser import Parser
 from prolog.scanner import Scanner
 import cProfile
@@ -222,7 +222,6 @@ def test_fail_builtin():
 
     has_solution = False
     for index, item in enumerate(runtime.execute(goal)):
-        print(f'item: {item}')
         if not isinstance(item, FALSE):
             has_solution = True
             assert str(goal.head.match(item).get(X)) == \
@@ -748,3 +747,295 @@ def test_logic_less_or_equal():
     ).parse_query()
 
     assert(not(len([s for s in runtime.execute(goal) if not isinstance(s, FALSE)])))  # noqa
+
+
+def test_insert_rule_left():
+    input = '''
+    block(a).
+
+    room(kitchen).
+    room(hallway).
+    room('dinning room').
+
+    location(table, kitchen).
+    location(chair, 'dinning room').
+
+    here(kitchen).
+
+    take(X) :- here(Y), location(X, Y).
+    '''
+
+    rules = Parser(
+        Scanner(input).tokenize()
+    ).parse_rules()
+
+    runtime = Runtime(rules)
+
+    head = Term('room', Term('bathroom'))
+    room_rule = Rule(head, TRUE())
+    runtime.insert_rule_left(room_rule)
+
+    assert(room_rule == runtime.rules[1])
+
+
+def test_insert_rule_right():
+    input = '''
+    block(a).
+
+    room(kitchen).
+    room(hallway).
+    room('dinning room').
+
+    location(table, kitchen).
+    location(chair, 'dinning room').
+
+    here(kitchen).
+
+    take(X) :- here(Y), location(X, Y).
+    '''
+
+    rules = Parser(
+        Scanner(input).tokenize()
+    ).parse_rules()
+
+    runtime = Runtime(rules)
+
+    head = Term('room', Term('bathroom'))
+    room_rule = Rule(head, TRUE())
+    runtime.insert_rule_right(room_rule)
+
+    assert(room_rule == runtime.rules[4])
+
+
+def test_remove_rule():
+    input = '''
+    block(a).
+
+    room(kitchen).
+    room(hallway).
+    room(bathroom).
+    room('dinning room').
+
+    location(table, kitchen).
+    location(chair, 'dinning room').
+
+    here(kitchen).
+
+    take(X) :- here(Y), location(X, Y).
+    '''
+
+    rules = Parser(
+        Scanner(input).tokenize()
+    ).parse_rules()
+
+    runtime = Runtime(rules)
+    original_rules_len = len(runtime.rules)
+
+    goal_text = "room(bathroom)."
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_query()
+
+    assert(list(runtime.execute(goal)))
+
+    head = Term('room', Term('bathroom'))
+    room_rule = Rule(head, TRUE())
+    runtime.remove_rule(room_rule)
+
+    assert(original_rules_len - 1 == len(runtime.rules))
+
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_query()
+
+    assert(not(list(runtime.execute(goal))))
+
+
+def test_remove_complex_rule():
+    input = '''
+    block(a).
+
+    room(kitchen).
+    room(hallway).
+    room(bathroom).
+    room('dinning room').
+
+    location(table, kitchen).
+    location(chair, 'dinning room').
+
+    here(kitchen).
+
+    take(X) :- here(Y), location(X, Y).
+    '''
+
+    rules = Parser(
+        Scanner(input).tokenize()
+    ).parse_rules()
+
+    runtime = Runtime(rules)
+    original_rules_len = len(runtime.rules)
+
+    goal_text = "take(X)."
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_query()
+
+    assert(list(runtime.execute(goal)))
+
+    head = Term('take', Variable('X'))
+    take_rule = Rule(head, TRUE())
+    runtime.remove_rule(take_rule)
+
+    assert(original_rules_len - 1 == len(runtime.rules))
+
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_query()
+
+    assert(not(list(runtime.execute(goal))))
+
+
+def test_retract_rule():
+    input = '''
+    block(a).
+
+    room(kitchen).
+    room(hallway).
+    room(bathroom).
+    room('dinning room').
+
+    location(table, kitchen).
+    location(chair, 'dinning room').
+
+    here(kitchen).
+
+    take(X) :- here(Y), location(X, Y).
+    disappear :- retract(here(_)).
+    move(Place) :- retract(here(_)), asserta(here(Place)).
+    '''
+
+    rules = Parser(
+        Scanner(input).tokenize()
+    ).parse_rules()
+
+    runtime = Runtime(rules)
+    original_rules_len = len(runtime.rules)
+
+    goal_text = "disappear."
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_query()
+    assert(list(runtime.execute(goal)))
+    assert(original_rules_len - 1 == len(runtime.rules))
+
+    goal_text = "here(kitchen)."
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_query()
+
+    assert(not(list(runtime.execute(goal))))
+
+
+def test_retract_and_asserta_rule():
+    input = '''
+    block(a).
+
+    room(kitchen).
+    room(hallway).
+    room(bathroom).
+    room('dinning room').
+
+    location(table, kitchen).
+    location(chair, 'dinning room').
+
+    here(kitchen).
+
+    take(X) :- here(Y), location(X, Y).
+    disappear :- retract(here(_)).
+    move(Place) :- retract(here(_)), asserta(here(Place)).
+    '''
+
+    rules = Parser(
+        Scanner(input).tokenize()
+    ).parse_rules()
+
+    runtime = Runtime(rules)
+    original_rules_len = len(runtime.rules)
+
+    goal_text = "move(office)."
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_query()
+    assert(list(runtime.execute(goal)))
+    assert(original_rules_len == len(runtime.rules))
+
+    goal_text = "here(kitchen)."
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_query()
+
+    assert(not(list(runtime.execute(goal))))
+
+    goal_text = "here(office)."
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_query()
+
+    assert(list(runtime.execute(goal)))
+
+
+def test_assertz_rule():
+    input = '''
+    block(a).
+
+    room(kitchen).
+    room(hallway).
+    room(bathroom).
+    room('dinning room').
+
+    location(table, kitchen).
+    location(chair, 'dinning room').
+
+    here(kitchen).
+
+    take(X) :- here(Y), location(X, Y).
+    appear :- assertz(block(b)).
+    move(Place) :- retract(here(_)), asserta(here(Place)).
+    '''
+
+    rules = Parser(
+        Scanner(input).tokenize()
+    ).parse_rules()
+
+    runtime = Runtime(rules)
+    original_rules_len = len(runtime.rules)
+
+    goal_text = "appear."
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_query()
+    assert(list(runtime.execute(goal)))
+    assert(original_rules_len + 1 == len(runtime.rules))
+
+    goal_text = "block(b)."
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_query()
+
+    assert(list(runtime.execute(goal)))
+
+    goal_text = "block(X)."
+
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_query()
+
+    x = goal.args[0]
+
+    expected_results = ['block(a)', 'block(b)']
+
+    expected_bindings = ['a', 'b']
+
+    for index, item in enumerate(runtime.execute(goal)):
+        assert str(item) == expected_results[index]
+        assert str(goal.match(item).get(x)) == expected_bindings[index]

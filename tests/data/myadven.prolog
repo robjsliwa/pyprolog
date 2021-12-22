@@ -20,7 +20,7 @@ door(office, hall).
 door(kitchen, office).
 door(hall, 'dinning room').
 door(kitchen, cellar).
-door('dinninr room', kitchen).
+door('dinning room', kitchen).
 
 % other facts
 edible(apple).
@@ -58,9 +58,21 @@ look :-
     write('You can go to:'), nl,
     list_connections(Place).
 
+disappear :- retract(here(_)).
+
+appear :- assertz(here(outerspace)).
+
+disappear_from(Place) :- retract(here(Place)).
+
+note :- write('Note!').
+
+move(Place) :-
+    retract(here(_)),
+    asserta(here(Place)).
+
 goto(Place) :-
     can_go(Place),
-    % move(Place),
+    move(Place),
     look.
 
 can_go(Place) :-
