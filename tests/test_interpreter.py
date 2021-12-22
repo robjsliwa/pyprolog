@@ -222,7 +222,6 @@ def test_fail_builtin():
 
     has_solution = False
     for index, item in enumerate(runtime.execute(goal)):
-        print(f'item: {item}')
         if not isinstance(item, FALSE):
             has_solution = True
             assert str(goal.head.match(item).get(X)) == \
@@ -926,7 +925,7 @@ def test_retract_rule():
     goal = Parser(
         Scanner(goal_text).tokenize()
     ).parse_query()
-    runtime.execute(goal)
+    assert(list(runtime.execute(goal)))
     assert(original_rules_len - 1 == len(runtime.rules))
 
     goal_text = "here(kitchen)."
@@ -935,3 +934,106 @@ def test_retract_rule():
     ).parse_query()
 
     assert(not(list(runtime.execute(goal))))
+
+def test_retract_and_asserta_rule():
+    input = '''
+    block(a).
+
+    room(kitchen).
+    room(hallway).
+    room(bathroom).
+    room('dinning room').
+
+    location(table, kitchen).
+    location(chair, 'dinning room').
+
+    here(kitchen).
+
+    take(X) :- here(Y), location(X, Y).
+    disappear :- retract(here(_)).
+    move(Place) :- retract(here(_)), asserta(here(Place)).
+    '''
+
+    rules = Parser(
+        Scanner(input).tokenize()
+    ).parse_rules()
+
+    runtime = Runtime(rules)
+    original_rules_len = len(runtime.rules)
+
+    goal_text = "move(office)."
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_query()
+    assert(list(runtime.execute(goal)))
+    assert(original_rules_len == len(runtime.rules))
+
+    goal_text = "here(kitchen)."
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_query()
+
+    assert(not(list(runtime.execute(goal))))
+
+    goal_text = "here(office)."
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_query()
+
+    assert(list(runtime.execute(goal)))
+
+def test_assertz_rule():
+    input = '''
+    block(a).
+
+    room(kitchen).
+    room(hallway).
+    room(bathroom).
+    room('dinning room').
+
+    location(table, kitchen).
+    location(chair, 'dinning room').
+
+    here(kitchen).
+
+    take(X) :- here(Y), location(X, Y).
+    appear :- assertz(block(b)).
+    move(Place) :- retract(here(_)), asserta(here(Place)).
+    '''
+
+    rules = Parser(
+        Scanner(input).tokenize()
+    ).parse_rules()
+
+    runtime = Runtime(rules)
+    original_rules_len = len(runtime.rules)
+
+    goal_text = "appear."
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_query()
+    assert(list(runtime.execute(goal)))
+    assert(original_rules_len + 1 == len(runtime.rules))
+
+    goal_text = "block(b)."
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_query()
+
+    assert(list(runtime.execute(goal)))
+
+    goal_text = "block(X)."
+
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_query()
+
+    x = goal.args[0]
+
+    expected_results = ['block(a)', 'block(b)']
+
+    expected_bindings = ['a', 'b']
+
+    for index, item in enumerate(runtime.execute(goal)):
+        assert str(item) == expected_results[index]
+        assert str(goal.match(item).get(x)) == expected_bindings[index]

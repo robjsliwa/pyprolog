@@ -27,20 +27,12 @@ class Conjunction(Term):
             return True
         return False
 
-    def _is_db_buildin(self, arg):
+    def _is_db_builtin(self, arg):
         if isinstance(arg, Retract) or \
            isinstance(arg, AssertA) or \
            isinstance(arg, AssertZ):
             return True
         return False
-
-    def _db_action(self, arg, runtime):
-        if isinstance(arg, Retract):
-            return runtime.remove_rule
-        if isinstance(arg, AssertA):
-            return runtime.insert_rule_left
-        if isinstance(arg, AssertZ):
-            return runtime.insert_rule_right
 
     def _is_fail(self, arg):
         if isinstance(arg, Fail):
@@ -58,21 +50,8 @@ class Conjunction(Term):
                 elif self._is_builtin(arg):
                     arg.substitute(bindings).display(runtime.stream_write)
                     yield from solutions(index + 1, bindings)
-                elif self._is_db_buildin(arg):
-                    param_bound = list(arg.arg.query(runtime))
-                    if param_bound:
-                        param_bound = param_bound[0]
-                        unified = merge_bindings(
-                            arg.match(param_bound),
-                            bindings
-                        )
-                        arg.substitute(unified).execute(
-                            self._db_action(arg, runtime)
-                        )
-                    else:
-                        arg.execute(
-                            self._db_action(arg, runtime)
-                        )
+                elif self._is_db_builtin(arg):
+                    _ = list(arg.query(runtime, bindings))  # consume to advance
                     yield from solutions(index + 1, bindings)
                 elif isinstance(arg, Arithmetic):
                     val = arg.substitute(bindings).evaluate()
@@ -164,9 +143,10 @@ class Runtime:
                 break
 
     def all_rules(self, query):
+        rules = self.rules[:]
         if isinstance(query, Rule):
-            return self.rules + [query]
-        return self.rules
+            return rules + [query]
+        return rules
 
     def evaluate_rules(self, query, goal):
         for rule in self.all_rules(query):

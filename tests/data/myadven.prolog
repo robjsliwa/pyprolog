@@ -60,6 +60,12 @@ look :-
 
 disappear :- retract(here(_)).
 
+appear :- assertz(here(outerspace)).
+
+disappear_from(Place) :- retract(here(Place)).
+
+note :- write('Note!').
+
 move(Place) :-
     retract(here(_)),
     asserta(here(Place)).
