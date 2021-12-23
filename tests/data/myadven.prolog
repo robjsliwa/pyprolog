@@ -81,7 +81,7 @@ take(X) :-
 
 can_take(Thing) :-
     here(Place),
-    location(Things, Place).
+    location(Thing, Place).
 can_take(Thing) :-
     write('There is no '), write(Thing),
     write(' here.'),
@@ -91,3 +91,24 @@ take_object(X) :-
     retract(location(X, _)),
     asserta(have(X)),
     write('taken'), nl.
+
+put(Thing) :-
+    have(Thing),
+    here(Place),
+    assertz(location(Thing, Place)),
+    retract(have(Thing)),
+    write('Placed '),
+    write(Thing),
+    write(' in '),
+    write(Place),
+    write('.'), nl.
+
+list_items :-
+    have(Thing),
+    tab, write(Thing), nl,
+    fail.
+list_items.
+
+inventory :-
+    write('Your inventory: '), nl,
+    list_items.

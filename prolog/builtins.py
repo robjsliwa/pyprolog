@@ -122,7 +122,6 @@ class DatabaseOp(ABC):
         pass
 
     def query(self, runtime, bindings={}):
-        print(f'CHECK1 - bindings: {bindings}')
         param_bound = list(self.arg.query(runtime))
         if param_bound:
             param_bound = param_bound[0]
@@ -133,8 +132,6 @@ class DatabaseOp(ABC):
             self.substitute(unified).execute(runtime)
         else:
             self.execute(runtime)
-        print('CHECK2')
-        print(runtime.rules)
         yield bindings
 
 
