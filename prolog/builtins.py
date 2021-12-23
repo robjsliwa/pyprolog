@@ -2,6 +2,12 @@ from abc import ABC, abstractmethod
 from .merge_bindings import merge_bindings
 
 
+class BuiltinsBase(ABC):
+    def query(self, runtime, bindings={}):
+        self.substitute(bindings).display(runtime.stream_write)
+        yield bindings
+
+
 class Fail:
     def __init__(self):
         self.name = 'fail'
@@ -19,7 +25,7 @@ class Fail:
         return str(self)
 
 
-class Write:
+class Write(BuiltinsBase):
     def __init__(self, *args):
         self.pred = 'write'
         self.args = list(args)
@@ -48,7 +54,7 @@ class Write:
         return str(self)
 
 
-class Nl:
+class Nl(BuiltinsBase):
     def __init__(self):
         self.pred = 'nl'
 
@@ -68,7 +74,7 @@ class Nl:
         return str(self)
 
 
-class Tab:
+class Tab(BuiltinsBase):
     def __init__(self):
         self.pred = 'tab'
 
