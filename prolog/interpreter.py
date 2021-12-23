@@ -48,7 +48,6 @@ class Conjunction(Term):
                 if self._is_fail(arg):
                     yield FALSE()
                 elif self._is_builtin(arg):
-                    # arg.substitute(bindings).display(runtime.stream_write)
                     _ = list(arg.query(runtime, bindings))  # consume iter
                     yield from solutions(index + 1, bindings)
                 elif self._is_db_builtin(arg):

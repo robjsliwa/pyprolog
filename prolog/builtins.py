@@ -3,6 +3,18 @@ from .merge_bindings import merge_bindings
 
 
 class BuiltinsBase(ABC):
+    @abstractmethod
+    def match(self, other):
+        pass
+
+    @abstractmethod
+    def substitute(self, bindings):
+        pass
+
+    @abstractmethod
+    def display(self, stream_writer):
+        pass
+
     def query(self, runtime, bindings={}):
         self.substitute(bindings).display(runtime.stream_write)
         yield bindings

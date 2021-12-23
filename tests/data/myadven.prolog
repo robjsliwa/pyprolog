@@ -58,14 +58,6 @@ look :-
     write('You can go to:'), nl,
     list_connections(Place).
 
-disappear :- retract(here(_)).
-
-appear :- assertz(here(outerspace)).
-
-disappear_from(Place) :- retract(here(Place)).
-
-note :- write('Note!').
-
 move(Place) :-
     retract(here(_)),
     asserta(here(Place)).
@@ -82,3 +74,41 @@ can_go(_) :-
     write('You cannot get there from here.'),
     nl,
     fail.
+
+take(X) :-
+    can_take(X),
+    take_object(X).
+
+can_take(Thing) :-
+    here(Place),
+    location(Thing, Place).
+can_take(Thing) :-
+    write('There is no '), write(Thing),
+    write(' here.'),
+    nl, fail.
+
+take_object(X) :-
+    retract(location(X, _)),
+    asserta(have(X)),
+    write('taken'), nl.
+
+put(Thing) :-
+    have(Thing),
+    here(Place),
+    assertz(location(Thing, Place)),
+    retract(have(Thing)),
+    write('Placed '),
+    write(Thing),
+    write(' in '),
+    write(Place),
+    write('.'), nl.
+
+list_items :-
+    have(Thing),
+    tab, write(Thing), nl,
+    fail.
+list_items.
+
+inventory :-
+    write('Your inventory: '), nl,
+    list_items.
