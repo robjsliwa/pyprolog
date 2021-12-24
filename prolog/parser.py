@@ -199,28 +199,6 @@ class Parser:
             return AssertA(args[0])
         if predicate == 'assertz':
             return AssertZ(args[0])
-        # if self._token_matches(TokenType.LEFTPAREN):
-        #     self._advance()
-        #     arg = self._parse_term()
-        #     if not self._token_matches(TokenType.RIGHTPAREN):
-        #         self._report(
-        #             self._peek().line,
-        #             f'Expecter ) in term {predicate} but got {self._peek()}')
-        #     self._advance()
-        #     if predicate == 'retract':
-        #         return Retract(arg)
-        #     if predicate == 'asserta':
-        #         return AssertA(arg)
-        #     if predicate == 'assertz':
-        #         return AssertZ(arg)
-        #     self._report(
-        #         self._peek().line,
-        #         f'Expected buildin/1 but got {predicate}'
-        #     )
-        # else:
-        #     self._report(
-        #             self._peek().line,
-        #             f'Expecter ( in term {predicate} but got {self._peek()}')
 
     def _parse_term(self):
         if self._token_matches(TokenType.LEFTPAREN):
