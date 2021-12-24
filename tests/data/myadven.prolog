@@ -35,28 +35,58 @@ here(kitchen).
 connect(X, Y, DoorState) :- door(X, Y, DoorState).
 connect(X, Y, DoorState) :- door(Y, X, DoorState).
 
+door_error(State) :-
+    write('Door is already '), write(State), nl.
+
+door_message(State, To) :-
+    write('You '), write(State), write(' door to '),
+    write(To), nl.
+
 open_door(To) :-
     here(From),
     door(From, To, open),
-    write('Door is already open'), nl,
+    door_error(open),
     fail.
 open_door(To) :-
     here(From),
     door(To, From, open),
-    write('Door is already open'), nl,
+    door_error(open),
     fail.
 open_door(To) :-
     here(From),
     door(From, To, closed),
     retract(door(From, To, closed)),
     assertz(door(From, To, open)),
-    write('You opened door to '), write(To), nl.
+    door_message(opened, To).
 open_door(To) :-
     here(From),
     door(To, From, closed),
     retract(door(To, From, closed)),
     assertz(door(To, From, open)),
-    write('You opened door to '), write(To), nl.
+    door_message(opened, To).
+
+close_door(To) :-
+    here(From),
+    door(From, To, closed),
+    door_error(closed),
+    fail.
+close_door(To) :-
+    here(From),
+    door(To, From, closed),
+    door_error(closed),
+    fail.
+close_door(To) :-
+    here(From),
+    door(From, To, open),
+    retract(door(From, To, open)),
+    assertz(door(From, To, closed)),
+    door_message(closed, To).
+close_door(To) :-
+    here(From),
+    door(To, From, open),
+    retract(door(To, From, open)),
+    assertz(door(To, From, closed)),
+    door_message(closed, To).
 
 list_things(Place) :-
     location(X, Place),
