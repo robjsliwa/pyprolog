@@ -34,7 +34,8 @@ class Scanner:
         self._add_token_with_literal(token_type, None)
 
     def _add_token_with_literal(self, token_type, literal, lex=None):
-        lexeme = self._source[self._start:self._current] if lex is None else lex
+        lexeme = self._source[self._start:self._current] if lex is None \
+            else lex
         self._tokens.append(
             Token(
                 token_type,

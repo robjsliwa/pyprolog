@@ -131,7 +131,7 @@ class DatabaseOp(ABC):
             )
             self.substitute(unified).execute(runtime)
         else:
-            self.execute(runtime)
+            self.substitute(bindings).execute(runtime)
         yield bindings
 
 
