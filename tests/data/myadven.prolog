@@ -30,6 +30,32 @@ tastes_yucky(broccoli).
 
 turned_off(flashlight).
 
+turn_on(X) :-
+    turned_on(X),
+    write(X), write(' is already turned on!'), nl,
+    fail.
+turn_on(X) :-
+    turned_off(X),
+    retract(turned_off(X)),
+    assertz(turned_on(X)),
+    write('You turned on '), write(X), nl.
+% turn_on(X) :-
+%     write('Cannot turn on '), write(X), nl,
+%     fail.
+
+turn_off(X) :-
+    turned_off(X),
+    write(X), write(' is already turned off!'), nl,
+    fail.
+turn_off(X) :-
+    turned_on(X),
+    retract(turned_on(X)),
+    assertz(turned_off(X)),
+    write('You turned off '), write(X), nl.
+% turn_off(X) :-
+%     write('Cannot turn off '), write(X), nl,
+%     fail.
+
 here(kitchen).
 
 connect(X, Y, DoorState) :- door(X, Y, DoorState).

@@ -1,10 +1,11 @@
 from .token import Token
 from .token_type import TokenType
+from .errors import ScannerError
 
 
 def default_error_handler(line, message):
     print(f'Line[{line}] Error: {message}')
-    raise Exception('Scanner error')
+    raise ScannerError('Scanner error')
 
 
 class Scanner:

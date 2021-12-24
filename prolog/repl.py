@@ -8,7 +8,7 @@ from pathlib import Path
 from .parser import Parser
 from .scanner import Scanner
 from .interpreter import Variable, Rule
-from .errors import InterpreterError
+from .errors import InterpreterError, ScannerError
 from .types import FALSE
 
 
@@ -111,6 +111,8 @@ def run_repl(runtime):
             except KeyboardInterrupt as e:  # Exception as e:
                 print(failure(f'Error: {str(e)}'))
             except InterpreterError as e:
+                print(failure(f'Error: {str(e)}'))
+            except ScannerError as e:
                 print(failure(f'Error: {str(e)}'))
     except KeyboardInterrupt:
         print('\nExiting...')
