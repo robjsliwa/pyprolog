@@ -107,7 +107,7 @@ def test_multi_term_query():
     expected_binding = [
         {'R': 'office', 'T': 'desk'},
         {'R': 'office', 'T': 'computer'},
-        {'R': 'cellar', 'T': "'washing machine'"}
+        {'R': 'cellar', 'T': "washing machine"}
     ]
 
     has_solution = False
@@ -162,7 +162,7 @@ def test_query_with_builtins():
         {'X': 'kitchen'},
         {'X': 'office'},
         {'X': 'hall'},
-        {'X': "'dinning room'"},
+        {'X': "dinning room"},
         {'X': 'cellar'}
     ]
 
@@ -427,7 +427,7 @@ def test_support_for_string_literals():
 
     x = goal.args[1]
 
-    expected_results = ["customer('Sally Smith', chicago, good_credit)"]
+    expected_results = ["customer(Sally Smith, chicago, good_credit)"]
 
     expected_bindings = ['chicago']
 

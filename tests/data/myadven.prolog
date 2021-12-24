@@ -16,11 +16,11 @@ location(crackers, kitchen).
 location(computer, office).
 
 % doors
-door(office, hall).
-door(kitchen, office).
-door(hall, 'dinning room').
-door(kitchen, cellar).
-door('dinning room', kitchen).
+door(office, hall, open).
+door(kitchen, office, closed).
+door(hall, 'dinning room', closed).
+door(kitchen, cellar, open).
+door('dinning room', kitchen, closed).
 
 % other facts
 edible(apple).
@@ -29,10 +29,90 @@ edible(crackers).
 tastes_yucky(broccoli).
 
 turned_off(flashlight).
+
+turn_on(X) :-
+    turned_on(X),
+    write(X), write(' is already turned on!'), nl,
+    fail.
+turn_on(X) :-
+    turned_off(X),
+    retract(turned_off(X)),
+    assertz(turned_on(X)),
+    write('You turned on '), write(X), nl.
+% turn_on(X) :-
+%     write('Cannot turn on '), write(X), nl,
+%     fail.
+
+turn_off(X) :-
+    turned_off(X),
+    write(X), write(' is already turned off!'), nl,
+    fail.
+turn_off(X) :-
+    turned_on(X),
+    retract(turned_on(X)),
+    assertz(turned_off(X)),
+    write('You turned off '), write(X), nl.
+% turn_off(X) :-
+%     write('Cannot turn off '), write(X), nl,
+%     fail.
+
 here(kitchen).
 
-connect(X, Y) :- door(X, Y).
-connect(X, Y) :- door(Y, X).
+connect(X, Y, DoorState) :- door(X, Y, DoorState).
+connect(X, Y, DoorState) :- door(Y, X, DoorState).
+
+door_error(State) :-
+    write('Door is already '), write(State), nl.
+
+door_message(State, To) :-
+    write('You '), write(State), write(' door to '),
+    write(To), nl.
+
+open_door(To) :-
+    here(From),
+    door(From, To, open),
+    door_error(open),
+    fail.
+open_door(To) :-
+    here(From),
+    door(To, From, open),
+    door_error(open),
+    fail.
+open_door(To) :-
+    here(From),
+    door(From, To, closed),
+    retract(door(From, To, closed)),
+    assertz(door(From, To, open)),
+    door_message(opened, To).
+open_door(To) :-
+    here(From),
+    door(To, From, closed),
+    retract(door(To, From, closed)),
+    assertz(door(To, From, open)),
+    door_message(opened, To).
+
+close_door(To) :-
+    here(From),
+    door(From, To, closed),
+    door_error(closed),
+    fail.
+close_door(To) :-
+    here(From),
+    door(To, From, closed),
+    door_error(closed),
+    fail.
+close_door(To) :-
+    here(From),
+    door(From, To, open),
+    retract(door(From, To, open)),
+    assertz(door(From, To, closed)),
+    door_message(closed, To).
+close_door(To) :-
+    here(From),
+    door(To, From, open),
+    retract(door(To, From, open)),
+    assertz(door(To, From, closed)),
+    door_message(closed, To).
 
 list_things(Place) :-
     location(X, Place),
@@ -43,9 +123,9 @@ list_things(Place) :-
 list_things(_).
 
 list_connections(Place) :-
-    connect(Place, X),
+    connect(Place, X, DoorState),
     tab,
-    write(X),
+    write(X), write(' door is '), write(DoorState),
     nl,
     fail.
 list_connections(_).
@@ -69,7 +149,13 @@ goto(Place) :-
 
 can_go(Place) :-
     here(X),
-    connect(X, Place).
+    connect(X, Place, open).
+% can_go(Place) :-
+%     here(X),
+%     connect(X, Place, closed),
+%     write('You cannot go there because door is closed.'),
+%     nl,
+%     fail.
 can_go(_) :-
     write('You cannot get there from here.'),
     nl,

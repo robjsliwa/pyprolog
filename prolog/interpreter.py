@@ -167,7 +167,6 @@ class Runtime:
                         if not isinstance(item, FALSE):
                             yield head.substitute(body.match(item))
                         elif isinstance(item, FALSE):
-                            # yield None
                             yield item
 
     def execute(self, query):
