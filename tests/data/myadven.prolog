@@ -33,28 +33,28 @@ turned_off(flashlight).
 turn_on(X) :-
     turned_on(X),
     write(X), write(' is already turned on!'), nl,
-    fail.
+    !, fail.
 turn_on(X) :-
     turned_off(X),
     retract(turned_off(X)),
     assertz(turned_on(X)),
-    write('You turned on '), write(X), nl.
-% turn_on(X) :-
-%     write('Cannot turn on '), write(X), nl,
-%     fail.
+    write('You turned on '), write(X), nl, !.
+turn_on(X) :-
+    write('Cannot turn on '), write(X), nl,
+    fail.
 
 turn_off(X) :-
     turned_off(X),
     write(X), write(' is already turned off!'), nl,
-    fail.
+    !, fail.
 turn_off(X) :-
     turned_on(X),
     retract(turned_on(X)),
     assertz(turned_off(X)),
-    write('You turned off '), write(X), nl.
-% turn_off(X) :-
-%     write('Cannot turn off '), write(X), nl,
-%     fail.
+    write('You turned off '), write(X), nl, !.
+turn_off(X) :-
+    write('Cannot turn off '), write(X), nl,
+    fail.
 
 here(kitchen).
 
@@ -150,12 +150,12 @@ goto(Place) :-
 can_go(Place) :-
     here(X),
     connect(X, Place, open).
-% can_go(Place) :-
-%     here(X),
-%     connect(X, Place, closed),
-%     write('You cannot go there because door is closed.'),
-%     nl,
-%     fail.
+can_go(Place) :-
+    here(X),
+    connect(X, Place, closed),
+    write('You cannot go there because door is closed.'),
+    nl,
+    !, fail.
 can_go(_) :-
     write('You cannot get there from here.'),
     nl,
