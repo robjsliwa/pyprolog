@@ -32,3 +32,14 @@ test_cut(X) :-
     write(X),
     nl,
     fail.
+
+cut_test_b(X) :-
+    data(X),
+    !.
+cut_test_b('last clause').
+
+test_cut_b(X) :-
+    cut_test_b(X),
+    write(X),
+    nl,
+    fail.

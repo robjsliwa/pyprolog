@@ -37,6 +37,23 @@ class Fail:
         return str(self)
 
 
+class Cut:
+    def __init__(self):
+        self.name = 'cut'
+
+    def match(self, other):
+        return {}
+
+    def substitute(self, bindings):
+        return self
+
+    def __str__(self):
+        return str(self.name)
+
+    def __repr__(self):
+        return str(self)
+
+
 class Write(BuiltinsBase):
     def __init__(self, *args):
         self.pred = 'write'

@@ -9,7 +9,7 @@ from .parser import Parser
 from .scanner import Scanner
 from .interpreter import Variable, Rule
 from .errors import InterpreterError, ScannerError
-from .types import FALSE
+from .types import FALSE, CUT
 
 
 init(autoreset=True)
@@ -90,6 +90,8 @@ def run_repl(runtime):
                 is_first_iter = False
                 has_solution = False
                 for solution in runtime.execute(goal):
+                    if isinstance(solution, CUT):
+                        break
                     if not isinstance(solution, FALSE):
                         has_solution = True
                     if is_first_iter is False:

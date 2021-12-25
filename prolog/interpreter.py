@@ -1,7 +1,7 @@
 import io
 from .types import Variable, Term, merge_bindings, Arithmetic, Logic, \
-    FALSE, TRUE
-from .builtins import Write, Nl, Tab, Fail, Retract, AssertA, AssertZ
+    FALSE, TRUE, CUT
+from .builtins import Write, Nl, Tab, Fail, Cut, Retract, AssertA, AssertZ
 
 
 class Rule:
@@ -39,12 +39,26 @@ class Conjunction(Term):
             return True
         return False
 
+    def _is_cut(self, arg):
+        if isinstance(arg, Cut):
+            return True
+        return False
+
     def query(self, runtime):
         def solutions(index, bindings):
             if index >= len(self.args):
                 yield self.substitute(bindings)
             else:
                 arg = self.args[index]
+                if self._is_cut(arg):
+                    for item in runtime.execute(arg.substitute(bindings)):
+                        unified = merge_bindings(
+                            arg.match(item),
+                            bindings
+                        )
+                        if unified is not None:
+                            yield from solutions(index + 1, unified)
+                            yield CUT()
                 if self._is_fail(arg):
                     yield FALSE()
                 elif self._is_builtin(arg):
@@ -164,6 +178,9 @@ class Runtime:
                         yield arith
                 else:
                     for item in body.query(self):
+                        if isinstance(item, CUT):
+                            yield item
+                            return
                         if not isinstance(item, FALSE):
                             yield head.substitute(body.match(item))
                         elif isinstance(item, FALSE):

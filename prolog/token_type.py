@@ -30,4 +30,5 @@ class TokenType(Enum):
     RETRACT = auto(),
     ASSERTA = auto(),
     ASSERTZ = auto(),
+    CUT = auto(),
     EOF = auto()

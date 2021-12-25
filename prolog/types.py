@@ -221,6 +221,17 @@ class FALSE(Term):
         yield self
 
 
+class CUT(Term):
+    def __init__(self):
+        super().__init__(CUT)
+
+    def substitute(self, bindings):
+        return {}
+
+    def query(self, runtime):
+        yield self
+
+
 class ExpressionBinder(Visitor):
     """Binds variables.
 
