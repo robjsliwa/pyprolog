@@ -1,5 +1,5 @@
 from prolog.interpreter import Runtime, Rule
-from prolog.types import Variable, Term, FALSE, TRUE
+from prolog.types import Variable, Term, FALSE, TRUE, CUT
 from prolog.parser import Parser
 from prolog.scanner import Scanner
 import cProfile
@@ -1039,3 +1039,79 @@ def test_assertz_rule():
     for index, item in enumerate(runtime.execute(goal)):
         assert str(item) == expected_results[index]
         assert str(goal.match(item).get(x)) == expected_bindings[index]
+
+
+def test_cut_predicate():
+    input = '''
+    data(one).
+    data(two).
+    data(three).
+
+    cut_test_a(X) :-
+    data(X).
+    cut_test_a('last clause').
+
+    cut_test_b(X) :-
+    data(X),
+    !.
+    cut_test_b('last clause').
+    '''
+
+    rules = Parser(
+        Scanner(input).tokenize()
+    ).parse_rules()
+
+    runtime = Runtime(rules)
+
+    goal_text = "cut_test_a(X)."
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_query()
+    assert(list(runtime.execute(goal)))
+
+    x = goal.args[0]
+
+    expected_results = [
+        'cut_test_a(one)',
+        'cut_test_a(two)',
+        'cut_test_a(three)',
+        'cut_test_a(last clause)'
+    ]
+
+    expected_bindings = [
+        'one',
+        'two',
+        'three',
+        'last clause'
+    ]
+
+    for index, item in enumerate(runtime.execute(goal)):
+        assert str(item) == expected_results[index]
+        assert str(goal.match(item).get(x)) == expected_bindings[index]
+
+    goal_text = "cut_test_b(X)."
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_query()
+
+    assert(list(runtime.execute(goal)))
+
+    goal_text = "cut_test_b(X)."
+
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_query()
+
+    x = goal.args[0]
+
+    expected_results = ['cut_test_b(one)']
+
+    expected_bindings = ['one']
+
+    for index, item in enumerate(runtime.execute(goal)):
+        if not isinstance(item, CUT):
+            print(f'ITEM: {item}')
+            print(f'{item} == {expected_results[index]}')
+            print(f'{goal.match(item).get(x)} == {expected_bindings[index]}')
+            assert str(item) == expected_results[index]
+            assert str(goal.match(item).get(x)) == expected_bindings[index]

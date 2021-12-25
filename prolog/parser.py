@@ -1,7 +1,7 @@
 from prolog.token_type import TokenType
 from .interpreter import Conjunction, Rule
 from .types import Arithmetic, Logic, Variable, Term, TRUE, Number
-from .builtins import Fail, Write, Nl, Tab, Retract, AssertA, AssertZ
+from .builtins import Fail, Write, Nl, Tab, Retract, AssertA, AssertZ, Cut
 from .expression import BinaryExpression, PrimaryExpression
 
 
@@ -171,6 +171,7 @@ class Parser:
             TokenType.RETRACT,
             TokenType.ASSERTA,
             TokenType.ASSERTZ,
+            TokenType.CUT,
             TokenType.ATOM
         ]):
             self._report(token.line, f'Bad atom name: {token.lexeme}')
@@ -242,6 +243,9 @@ class Parser:
 
         if self._is_type(token, TokenType.FAIL):
             return Fail()
+
+        if self._is_type(token, TokenType.CUT):
+            return Cut()
 
         if self._is_type(token, TokenType.NL):
             return Nl()

@@ -179,6 +179,8 @@ class Scanner:
             self._process_number()
         elif self._is_digit(c):
             self._process_number()
+        elif c == '!':
+            self._add_token(TokenType.CUT)
         elif c == '(':
             self._add_token(TokenType.LEFTPAREN)
         elif c == ')':
