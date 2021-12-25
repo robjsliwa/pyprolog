@@ -1040,6 +1040,7 @@ def test_assertz_rule():
         assert str(item) == expected_results[index]
         assert str(goal.match(item).get(x)) == expected_bindings[index]
 
+
 def test_cut_predicate():
     input = '''
     data(one).
@@ -1049,7 +1050,7 @@ def test_cut_predicate():
     cut_test_a(X) :-
     data(X).
     cut_test_a('last clause').
-    
+
     cut_test_b(X) :-
     data(X),
     !.
