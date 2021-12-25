@@ -18,3 +18,17 @@ freezing(X) :- X =< 32.
 sum_greater_4(Y) :- X is Y + 3, X > 4.
 sum_less_4 :- X is 1 + 1, X < 4.
 sum_greater_eq_4 :- X is 2 + 2, X >= 4.
+
+data(one).
+data(two).
+data(three).
+
+cut_test_a(X) :-
+    data(X).
+cut_test_a('last clause').
+
+test_cut(X) :-
+    cut_test_a(X),
+    write(X),
+    nl,
+    fail.
