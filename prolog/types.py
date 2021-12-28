@@ -28,6 +28,67 @@ class Variable:
         return str(self)
 
 
+class List:
+    def __init__(self, lst, tail=None):
+        self.name = 'list'
+        self.lst = lst
+        self.tail = tail
+
+    def _match_lsts(self, lst1, lst2):
+        m = list(
+                map(
+                    (lambda arg1, arg2: arg1.match(arg2)),
+                    lst1,
+                    lst2
+                )
+        )
+
+        return reduce(merge_bindings, [{}] + m)
+
+    def match(self, other):
+        if isinstance(other, List) and \
+           len(self.lst) == len(other.lst) and \
+           not self.tail:
+            # if both list contain same number of elements and
+            # each elements is a match
+            # m = list(
+            #         map(
+            #             (lambda arg1, arg2: arg1.match(arg2)),
+            #             self.lst,
+            #             other.lst
+            #         )
+            # )
+
+            # return reduce(merge_bindings, [{}] + m)
+            return self._match_lsts(self.lst, other.lst)
+        elif isinstance(other, List) and self.tail:  # case when bar is used
+            if isinstance(self.tail, Variable) and \
+               len(other.lst) >= len(self.lst):  # tail can be variable
+                left_lst = other.lst[:len(self.lst)]
+                right_lst = other[len(self.lst):]
+                bindings = self._match_lsts(self.lst, left_lst)
+                bindings[self.tail] = right_lst
+            elif isinstance(self.tail, List):  # or another list
+                pass
+
+        return None
+
+    def substitute(self, bindings):
+        return List(map(
+            (lambda arg: arg.substitute(bindings)),
+            self.lst
+        ))
+
+    def query(self, runtime):
+        yield from runtime.execute(self)
+    
+    def __str__(self):
+        return f'[{", ".join(map(str, self.lst))}]'
+
+    def __repr__(self):
+        return str(self)
+
+
 class Term:
     def __init__(self, pred, *args):
         self.pred = pred
