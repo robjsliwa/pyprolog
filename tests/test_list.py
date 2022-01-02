@@ -103,3 +103,22 @@ def test_list_with_head_and_tail_vars():
 
     sub = l1.substitute(m)
     assert(str(sub) == '[a1 | [a2, a3]]')
+
+
+def test_list_with_head_var_and_tail_list():
+    head_var = Variable('H')
+    tail1 = Variable('X')
+    tail2 = Variable('Y')
+
+    a2_1 = Term('a1')
+    a2_2 = Term('a2')
+    a2_3 = Term('a3')
+
+    l1 = List(head_var, List([tail1, tail2]))
+    l2 = List([a2_1, a2_2, a2_3])
+
+    m = l1.match(l2)
+    assert(str(m) == '{H: a1, X: a2, Y: a3}')
+
+    sub = l1.substitute(m)
+    assert(str(sub) == '[a1 | [a2, a3]]')

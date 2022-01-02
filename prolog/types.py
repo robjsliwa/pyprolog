@@ -46,11 +46,39 @@ class List:
         return reduce(merge_bindings, [{}] + m)
 
     def match(self, other):
-        if isinstance(self.lst, Variable) and \
-           isinstance(other, List):
+        '''
+        list                 tail
+        ---------------------------------------
+        list                None
+        list                Variable
+        list                List
+        Variable            None
+        Variable            Variable
+        Variable            List
+        '''
+        if not isinstance(other, List):
+            return {}
+
+        if isinstance(self.lst, list) and \
+           len(other.lst) >= len(self.lst):
+            if isinstance(self.tail, Variable):
+                left_lst = other.lst[:len(self.lst)]
+                right_lst = other.lst[len(self.lst):]
+                bindings = self._match_lsts(self.lst, left_lst)
+                bindings[self.tail] = List(right_lst)
+                return bindings
+            elif isinstance(self.tail, List):
+                left_lst = other.lst[:1]
+                right_lst = other.lst[1:]
+                bindings_lst = self._match_lsts(self.lst, left_lst)
+                bindings_tail = self._match_lsts(self.tail.lst, right_lst)
+                return merge_bindings(bindings_lst, bindings_tail)
+            elif self.tail is None and len(self.lst) == len(other.lst):
+                return self._match_lsts(self.lst, other.lst)
+        elif isinstance(self.lst, Variable):
             if len(other.lst) == 0:
                 return {}
-            if self.tail and isinstance(self.tail, Variable):
+            if isinstance(self.tail, Variable):
                 left_lst = other.lst[:1]
                 right_lst = other.lst[1:]
                 bindings = {
@@ -58,25 +86,14 @@ class List:
                     self.tail: List(right_lst)
                 }
                 return bindings
-            elif self.tail and isinstance(self.tail, List):
-                pass
-        elif isinstance(self.lst, list):
-            if isinstance(other, List) and \
-               len(self.lst) == len(other.lst) and \
-               not self.tail:  # simple lists with no tail, must match len
-                return self._match_lsts(self.lst, other.lst)
-            elif isinstance(other, List) and self.tail:
-                # case when bar is used
-                if isinstance(self.tail, Variable) and \
-                   len(other.lst) >= len(self.lst):  # tail can be variable
-                    left_lst = other.lst[:len(self.lst)]
-                    right_lst = other.lst[len(self.lst):]
-                    bindings = self._match_lsts(self.lst, left_lst)
-                    bindings[self.tail] = List(right_lst)
-                    return bindings
-                elif isinstance(self.tail, List):  # or another list
-                    left_lst = other.lst[:len(self.lst)]
-                    right_lst = other.lst[len(self.lst):]
+            elif isinstance(self.tail, List):
+                left_lst = other.lst[:1]
+                right_lst = other.lst[1:]
+                bindings_lst = {
+                    self.lst: left_lst[0]
+                }
+                bindings_tail = self._match_lsts(self.tail.lst, right_lst)
+                return merge_bindings(bindings_lst, bindings_tail)
 
         return {}
 
