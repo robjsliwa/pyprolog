@@ -1,6 +1,6 @@
 from prolog.token_type import TokenType
 from .interpreter import Conjunction, Rule
-from .types import Arithmetic, Logic, Variable, Term, TRUE, Number
+from .types import Arithmetic, Logic, Variable, Term, TRUE, Number, List
 from .builtins import Fail, Write, Nl, Tab, Retract, AssertA, AssertZ, Cut
 from .expression import BinaryExpression, PrimaryExpression
 
@@ -201,6 +201,26 @@ class Parser:
         if predicate == 'assertz':
             return AssertZ(args[0])
 
+    def _parse_list(self):
+        main_lst = []
+        bar_tail = None
+        self._advance()
+        while not self._token_matches(TokenType.RIGHTBRACKET):
+            if self._token_matches(TokenType.BAR):
+                bar_tail = []
+                self._advance()
+                continue
+            list_term = self._parse_term()
+            if bar_tail is not None:
+                bar_tail.append(list_term)
+            else:
+                main_lst.append(list_term)
+            if self._token_matches(TokenType.COMMA):
+                self._advance()  # consume commas
+        self._advance()  # consume right bracket
+        return List(main_lst, bar_tail) if bar_tail is not None else \
+            List(main_lst)
+
     def _parse_term(self):
         if self._token_matches(TokenType.LEFTPAREN):
             self._advance()
@@ -227,6 +247,9 @@ class Parser:
             TokenType.GREATER
         ]):
             return self._parse_logic()
+
+        if self._token_matches(TokenType.LEFTBRACKET):
+            return self._parse_list()
 
         token = self._parse_atom()
         predicate = token.lexeme

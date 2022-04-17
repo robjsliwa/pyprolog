@@ -1,4 +1,7 @@
-from prolog.types import List, Term, Variable
+from prolog.types import List, Term, Variable, FALSE
+from prolog.interpreter import Runtime
+from prolog.parser import Parser
+from prolog.scanner import Scanner
 
 
 def test_list_with_simple_terms():
@@ -122,3 +125,58 @@ def test_list_with_head_var_and_tail_list():
 
     sub = l1.substitute(m)
     assert(str(sub) == '[a1 | [a2, a3]]')
+
+
+def test_parser_match_list_with_simple_terms():
+    source = '''
+    rgb([red, green, blue]).
+    '''
+
+    tokens = Scanner(source).tokenize()
+    rules = Parser(tokens).parse_rules()
+
+    runtime = Runtime(rules)
+
+    goal_text = 'rgb([red, green, blue]).'
+
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_terms()
+
+    assert(len([s for s in runtime.execute(goal) if not isinstance(s, FALSE)]))  # noqa
+
+
+def test_parser_bind_list_with_simple_terms():
+    source = '''
+    rgb([red, green, blue]).
+    '''
+
+    tokens = Scanner(source).tokenize()
+    rules = Parser(tokens).parse_rules()
+
+    runtime = Runtime(rules)
+
+    goal_text = 'rgb(X).'
+
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_terms()
+
+    x = goal.args[0]
+
+    # expected_results = [
+    #     'location(computer, office)',
+    #     'location(chair, office)'
+    # ]
+
+    expected_binding = [
+        '[red, green, blue]'
+    ]
+
+    has_solution = False
+    for index, item in enumerate(runtime.execute(goal)):
+        has_solution = True
+        # assert str(item) == expected_results[index]
+        assert str(goal.match(item).get(x)) == expected_binding[index]
+
+    assert has_solution is True
