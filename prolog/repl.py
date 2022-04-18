@@ -9,7 +9,7 @@ from .parser import Parser
 from .scanner import Scanner
 from .interpreter import Variable, Rule
 from .errors import InterpreterError, ScannerError
-from .types import FALSE, CUT
+from .types import FALSE, CUT, List
 
 
 init(autoreset=True)
@@ -54,12 +54,15 @@ def display_variables(goal, solution, stream_reader):
     has_variables = False
     if isinstance(goal, Rule):
         goal = goal.head
-    for index, arg in enumerate(goal.args):
-        if isinstance(arg, Variable):
-            v = goal.args[index]
+    for arg in goal.args:
+        if isinstance(arg, Variable) or isinstance(arg, List):
             goal_match = goal.match(solution)
-            if goal_match:
-                bind = goal_match.get(v)
+            if isinstance(arg, List) and goal_match:
+                for k, v in goal_match.items():
+                    print(f'{k} = {v}', end=' ')
+                has_variables = True
+            elif goal_match:
+                bind = goal_match.get(arg)
                 print(success(f'{arg} = {bind}'), end=' ')
                 has_variables = True
     if has_variables:

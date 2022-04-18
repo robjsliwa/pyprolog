@@ -95,7 +95,7 @@ class List:
                 bindings_tail = self._match_lsts(self.tail.lst, right_lst)
                 return merge_bindings(bindings_lst, bindings_tail)
 
-        return {}
+        return None
 
     def substitute(self, bindings):
         main_lst = None

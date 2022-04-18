@@ -180,3 +180,48 @@ def test_parser_bind_list_with_simple_terms():
         assert str(goal.match(item).get(x)) == expected_binding[index]
 
     assert has_solution is True
+
+def test_parser_match_list_with_wrong_number_of_vars():
+    source = '''
+    rgb([red, green, blue]).
+    '''
+
+    tokens = Scanner(source).tokenize()
+    rules = Parser(tokens).parse_rules()
+
+    runtime = Runtime(rules)
+
+    goal_text = 'rgb([R, G]).'
+
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_terms()
+
+    assert(not(len([s for s in runtime.execute(goal) if not isinstance(s, FALSE)])))  # noqa
+
+def test_parser_bind_list_with_vars():
+    source = '''
+    rgb([red, green, blue]).
+    '''
+
+    tokens = Scanner(source).tokenize()
+    rules = Parser(tokens).parse_rules()
+
+    runtime = Runtime(rules)
+
+    goal_text = 'rgb([R, G, B]).'
+
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_terms()
+
+    expected_binding = [
+        '{R: red, G: green, B: blue}'
+    ]
+
+    has_solution = False
+    for index, item in enumerate(runtime.execute(goal)):
+        has_solution = True
+        assert str(goal.match(item)) == expected_binding[index]
+
+    assert has_solution is True
