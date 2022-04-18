@@ -181,6 +181,7 @@ def test_parser_bind_list_with_simple_terms():
 
     assert has_solution is True
 
+
 def test_parser_match_list_with_wrong_number_of_vars():
     source = '''
     rgb([red, green, blue]).
@@ -198,6 +199,7 @@ def test_parser_match_list_with_wrong_number_of_vars():
     ).parse_terms()
 
     assert(not(len([s for s in runtime.execute(goal) if not isinstance(s, FALSE)])))  # noqa
+
 
 def test_parser_bind_list_with_vars():
     source = '''
