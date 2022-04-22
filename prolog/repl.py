@@ -55,15 +55,23 @@ def display_variables(goal, solution, stream_reader):
     if isinstance(goal, Rule):
         goal = goal.head
     for arg in goal.args:
-        if isinstance(arg, Variable) or isinstance(arg, List):
+        if isinstance(arg, Variable):
+            # print(f'REPL solution: {solution} - arg: {arg}')
+            # print(f'REPL goal: {goal}')
             goal_match = goal.match(solution)
+            # print(f'REPL match: {goal_match}')
+            if goal_match:
+                bind = goal_match.get(arg)
+                print(success(f'{arg} = {bind}'), end=' ')
+                has_variables = True
+        elif isinstance(arg, List):
+            # print(f'REPL solution: {solution} - arg: {arg}')
+            # print(f'REPL goal: {goal}')
+            goal_match = goal.match(solution)
+            # print(f'REPL match: {goal_match}')
             if isinstance(arg, List) and goal_match:
                 for k, v in goal_match.items():
                     print(f'{k} = {v}', end=' ')
-                has_variables = True
-            elif goal_match:
-                bind = goal_match.get(arg)
-                print(success(f'{arg} = {bind}'), end=' ')
                 has_variables = True
     if has_variables:
         print('')

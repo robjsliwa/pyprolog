@@ -218,6 +218,14 @@ class Parser:
             if self._token_matches(TokenType.COMMA):
                 self._advance()  # consume commas
         self._advance()  # consume right bracket
+
+        if len(main_lst) == 1 and isinstance(main_lst[0], Variable):
+            main_lst = main_lst[0]
+
+        if bar_tail and len(bar_tail) == 1 and \
+           isinstance(bar_tail[0], Variable):
+            bar_tail = bar_tail[0]
+
         return List(main_lst, bar_tail) if bar_tail is not None else \
             List(main_lst)
 

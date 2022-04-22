@@ -59,8 +59,10 @@ class List:
         if not isinstance(other, List):
             return {}
 
-        if isinstance(self.lst, list) and \
-           len(other.lst) >= len(self.lst):
+        # print(f'CHECK1: {self.lst} | {self.tail}')
+        # print(f'CHECK1: {other.lst} | {other.tail}')
+
+        if isinstance(self.lst, list):
             if isinstance(self.tail, Variable):
                 left_lst = other.lst[:len(self.lst)]
                 right_lst = other.lst[len(self.lst):]
@@ -75,6 +77,12 @@ class List:
                 return merge_bindings(bindings_lst, bindings_tail)
             elif self.tail is None and len(self.lst) == len(other.lst):
                 return self._match_lsts(self.lst, other.lst)
+            elif isinstance(other.tail, Variable):
+                left_lst = self.lst[:len(other.lst)]
+                right_lst = self.lst[len(other.lst):]
+                bindings = self._match_lsts(other.lst, left_lst)
+                bindings[other.tail] = List(right_lst)
+                return bindings
         elif isinstance(self.lst, Variable):
             if len(other.lst) == 0:
                 return {}
@@ -95,6 +103,7 @@ class List:
                 bindings_tail = self._match_lsts(self.tail.lst, right_lst)
                 return merge_bindings(bindings_lst, bindings_tail)
 
+        print('EXIT')
         return None
 
     def substitute(self, bindings):
