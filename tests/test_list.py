@@ -11,8 +11,8 @@ def test_dot_print():
 
 def test_dot_iterator():
     d = Dot('A', Dot('B', Dot('C')))
-    l = list(d)
-    assert l == ['A', 'B', 'C']
+    lst = list(d)
+    assert lst == ['A', 'B', 'C']
 
 
 def test_list_with_simple_terms():
