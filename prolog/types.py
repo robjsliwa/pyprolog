@@ -142,6 +142,72 @@ class List:
         return str(self)
 
 
+class Dot:
+    def __init__(self, head, tail=None):
+        self._name = '.'
+        self.head = head
+        self.tail = tail
+        self._current_element = self
+
+    @classmethod
+    def from_list(cls, lst):
+        if not lst:
+            return cls([])
+        head = Dot(lst[0])
+        first_head = head
+        for elem in lst[1:]:
+            head.tail = Dot(elem)
+            head = head.tail
+        return first_head
+
+    def _match_lsts(self, lst1, lst2):
+        m = list(
+                map(
+                    (lambda arg1, arg2: arg1.match(arg2)),
+                    lst1,
+                    lst2
+                )
+        )
+
+        return reduce(merge_bindings, [{}] + m)
+
+    def match(self, other):
+        if not isinstance(other, Dot):
+            return {}
+
+        l1 = list(self)
+        l2 = list(other)
+        if len(l1) == len(l2):
+            return self._match_lsts(l1, l2)
+        return None
+
+    def substitute(self, bindings):
+        return Dot.from_list(list(map(
+            (lambda arg: arg.substitute(bindings)),
+            self
+        )))
+
+    def query(self, runtime):
+        yield from runtime.execute(self)
+
+    def __iter__(self):
+        self._current_element = self
+        return self
+
+    def __next__(self):
+        if self._current_element is None:
+            raise StopIteration
+        element = self._current_element.head
+        self._current_element = self._current_element.tail
+        return element
+
+    def __str__(self):
+        return f'.({self.head}, {"[]" if self.tail is None else self.tail})'
+
+    def __repr__(self):
+        return str(self)
+
+
 class Term:
     def __init__(self, pred, *args):
         self.pred = pred

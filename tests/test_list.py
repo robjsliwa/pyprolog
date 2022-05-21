@@ -1,7 +1,18 @@
-from prolog.types import List, Term, Variable, FALSE
+from prolog.types import List, Term, Variable, FALSE, Dot
 from prolog.interpreter import Runtime
 from prolog.parser import Parser
 from prolog.scanner import Scanner
+
+
+def test_dot_print():
+    l1 = str(Dot('A', Dot('B')))
+    assert '.(A, .(B, []))' == l1
+
+
+def test_dot_iterator():
+    d = Dot('A', Dot('B', Dot('C')))
+    l = list(d)
+    assert l == ['A', 'B', 'C']
 
 
 def test_list_with_simple_terms():
@@ -11,8 +22,8 @@ def test_list_with_simple_terms():
     a2_1 = Term('a1')
     a2_2 = Term('a2')
 
-    l1 = List([a1_1, a1_2])
-    l2 = List([a2_1, a2_2])
+    l1 = Dot(a1_1, Dot(a1_2))
+    l2 = Dot(a2_1, Dot(a2_2))
 
     m = l1.match(l2)
     assert(m == {})
@@ -25,14 +36,14 @@ def test_list_with_vars_and_terms():
     a2_1 = Term('a1')
     a2_2 = Term('a2')
 
-    l1 = List([a1_1, a1_2])
-    l2 = List([a2_1, a2_2])
+    l1 = Dot(a1_1, Dot(a1_2))
+    l2 = Dot(a2_1, Dot(a2_2))
 
     m = l1.match(l2)
     assert(str(m) == '{X: a1, Y: a2}')
 
     sub = l1.substitute(m)
-    assert(str(sub) == '[a1, a2]')
+    assert(str(list(sub)) == '[a1, a2]')
 
 
 def test_list_with_subset_vars():
@@ -42,14 +53,14 @@ def test_list_with_subset_vars():
     a2_1 = Term('a1')
     a2_2 = Term('a2')
 
-    l1 = List([a1_1, a1_2])
-    l2 = List([a2_1, a2_2])
+    l1 = Dot(a1_1, Dot(a1_2))
+    l2 = Dot(a2_1, Dot(a2_2))
 
     m = l1.match(l2)
     assert(str(m) == '{X: a1}')
 
     sub = l1.substitute(m)
-    assert(str(sub) == '[a1, a2]')
+    assert(str(list(sub)) == '[a1, a2]')
 
 
 def test_list_with_bar_variable_tail():
@@ -177,7 +188,7 @@ def test_parser_bind_list_with_simple_terms():
     for index, item in enumerate(runtime.execute(goal)):
         has_solution = True
         # assert str(item) == expected_results[index]
-        assert str(goal.match(item).get(x)) == expected_binding[index]
+        assert str(list(goal.match(item).get(x))) == expected_binding[index]
 
     assert has_solution is True
 
