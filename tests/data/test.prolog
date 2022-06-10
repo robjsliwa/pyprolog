@@ -43,3 +43,5 @@ test_cut_b(X) :-
     write(X),
     nl,
     fail.
+
+rgb([red, green, blue]).

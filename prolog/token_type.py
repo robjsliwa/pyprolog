@@ -31,4 +31,7 @@ class TokenType(Enum):
     ASSERTA = auto(),
     ASSERTZ = auto(),
     CUT = auto(),
+    LEFTBRACKET = auto(),
+    RIGHTBRACKET = auto(),
+    BAR = auto(),
     EOF = auto()

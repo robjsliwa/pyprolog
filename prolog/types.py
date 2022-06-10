@@ -28,6 +28,126 @@ class Variable:
         return str(self)
 
 
+class Dot:
+    def __init__(self, head, tail=None):
+        self._name = '.'
+        self.head = head
+        self.tail = tail
+        self._current_element = self
+
+    @classmethod
+    def from_list(cls, lst):
+        if not lst:
+            return cls([])
+        head = Dot(lst[0])
+        first_head = head
+        for elem in lst[1:]:
+            head.tail = Dot(elem)
+            head = head.tail
+        return first_head
+
+    @staticmethod
+    def concat(dot1, dot2):
+        return Dot.from_list(
+            list(dot1) + list(dot2)
+        )
+
+    def _match_lsts(self, lst1, lst2):
+        m = list(
+                map(
+                    (lambda arg1, arg2: arg1.match(arg2)),
+                    lst1,
+                    lst2
+                )
+        )
+
+        return reduce(merge_bindings, [{}] + m)
+
+    def match(self, other):
+        if isinstance(other, Bar):
+            return other.match(self)
+
+        if not isinstance(other, Dot):
+            return {}
+
+        l1 = list(self)
+        l2 = list(other)
+        if len(l1) == len(l2):
+            return self._match_lsts(l1, l2)
+        return None
+
+    def substitute(self, bindings):
+        return Dot.from_list(list(map(
+            (lambda arg: arg.substitute(bindings)),
+            self
+        )))
+
+    def query(self, runtime):
+        yield from runtime.execute(self)
+
+    def __iter__(self):
+        self._current_element = self
+        return self
+
+    def __next__(self):
+        if self._current_element is None:
+            raise StopIteration
+        element = self._current_element.head
+        self._current_element = self._current_element.tail
+        return element
+
+    def __str__(self):
+        return str(list(self))
+
+    def __repr__(self):
+        return str(self)
+
+
+class Bar:
+    def __init__(self, head, tail):
+        self.head = head
+        self.tail = tail
+
+    def match(self, other):
+        if not isinstance(other, Dot):
+            return None
+
+        other_left = list(other)[:len(list(self.head))]
+        other_right = list(other)[len(list(self.head)):]
+        other_head = Dot.from_list(other_left)
+        other_tail = Dot.from_list(other_right)
+        head_match = self.head.match(other_head)
+        tail_match = self.tail.match(other_tail)
+
+        if head_match is not None and tail_match is not None:
+            return {**head_match, **tail_match}
+
+        return None
+
+    def substitute(self, bindings):
+        # return Dot.from_list(list(map(
+        #     (lambda arg: arg.substitute(bindings)),
+        #     self
+        # )))
+        new_head = self.head.substitute(bindings)
+        new_tail = self.tail.substitute(bindings)
+        return Bar(new_head, new_tail)
+
+    def query(self, runtime):
+        yield from runtime.execute(self)
+
+    def __str__(self):
+        output = '['
+        output += ', '.join(map(str, self.head))
+        if self.tail:
+            output += f' | {self.tail}'
+        output += ']'
+        return output
+
+    def __repr__(self):
+        return str(self)
+
+
 class Term:
     def __init__(self, pred, *args):
         self.pred = pred
