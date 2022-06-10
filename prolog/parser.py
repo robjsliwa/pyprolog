@@ -201,34 +201,6 @@ class Parser:
         if predicate == 'assertz':
             return AssertZ(args[0])
 
-    # def _parse_list(self):
-    #     main_lst = []
-    #     bar_tail = None
-    #     self._advance()
-    #     while not self._token_matches(TokenType.RIGHTBRACKET):
-    #         if self._token_matches(TokenType.BAR):
-    #             bar_tail = []
-    #             self._advance()
-    #             continue
-    #         list_term = self._parse_term()
-    #         if bar_tail is not None:
-    #             bar_tail.append(list_term)
-    #         else:
-    #             main_lst.append(list_term)
-    #         if self._token_matches(TokenType.COMMA):
-    #             self._advance()  # consume commas
-    #     self._advance()  # consume right bracket
-
-    #     if len(main_lst) == 1 and isinstance(main_lst[0], Variable):
-    #         main_lst = main_lst[0]
-
-    #     if bar_tail and len(bar_tail) == 1 and \
-    #        isinstance(bar_tail[0], Variable):
-    #         bar_tail = bar_tail[0]
-
-    #     return List(main_lst, bar_tail) if bar_tail is not None else \
-    #         List(main_lst)
-
     def _parse_list(self):
         dot_list = []
         dot_tail = None

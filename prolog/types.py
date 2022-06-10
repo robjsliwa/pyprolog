@@ -28,120 +28,6 @@ class Variable:
         return str(self)
 
 
-class List:
-    def __init__(self, lst, tail=None):
-        self.name = 'list'
-        self.lst = lst
-        self.tail = tail
-
-    def _match_lsts(self, lst1, lst2):
-        m = list(
-                map(
-                    (lambda arg1, arg2: arg1.match(arg2)),
-                    lst1,
-                    lst2
-                )
-        )
-
-        return reduce(merge_bindings, [{}] + m)
-
-    def match(self, other):
-        '''
-        list                 tail
-        ---------------------------------------
-        list                None
-        list                Variable
-        list                List
-        Variable            None
-        Variable            Variable
-        Variable            List
-        '''
-        if not isinstance(other, List):
-            return {}
-
-        # print(f'CHECK1: {self.lst} | {self.tail}')
-        # print(f'CHECK1: {other.lst} | {other.tail}')
-
-        if isinstance(self.lst, list):
-            if isinstance(self.tail, Variable):
-                left_lst = other.lst[:len(self.lst)]
-                right_lst = other.lst[len(self.lst):]
-                bindings = self._match_lsts(self.lst, left_lst)
-                bindings[self.tail] = List(right_lst)
-                return bindings
-            elif isinstance(self.tail, List):
-                left_lst = other.lst[:1]
-                right_lst = other.lst[1:]
-                bindings_lst = self._match_lsts(self.lst, left_lst)
-                bindings_tail = self._match_lsts(self.tail.lst, right_lst)
-                return merge_bindings(bindings_lst, bindings_tail)
-            elif self.tail is None and len(self.lst) == len(other.lst):
-                return self._match_lsts(self.lst, other.lst)
-            elif isinstance(other.tail, Variable):
-                left_lst = self.lst[:len(other.lst)]
-                right_lst = self.lst[len(other.lst):]
-                bindings = self._match_lsts(other.lst, left_lst)
-                bindings[other.tail] = List(right_lst)
-                return bindings
-        elif isinstance(self.lst, Variable):
-            if len(other.lst) == 0:
-                return {}
-            if isinstance(self.tail, Variable):
-                left_lst = other.lst[:1]
-                right_lst = other.lst[1:]
-                bindings = {
-                    self.lst: left_lst[0],
-                    self.tail: List(right_lst)
-                }
-                return bindings
-            elif isinstance(self.tail, List):
-                left_lst = other.lst[:1]
-                right_lst = other.lst[1:]
-                bindings_lst = {
-                    self.lst: left_lst[0]
-                }
-                bindings_tail = self._match_lsts(self.tail.lst, right_lst)
-                return merge_bindings(bindings_lst, bindings_tail)
-
-        print('EXIT')
-        return None
-
-    def substitute(self, bindings):
-        main_lst = None
-
-        if isinstance(self.lst, Variable):
-            main_lst = self.lst.substitute(bindings)
-        else:
-            main_lst = list(map(
-                (lambda arg: arg.substitute(bindings)),
-                self.lst
-            ))
-
-        lst_sub = List(main_lst)
-
-        if self.tail:
-            lst_sub = List(
-                main_lst,
-                self.tail.substitute(bindings)
-            )
-
-        return lst_sub
-
-    def query(self, runtime):
-        yield from runtime.execute(self)
-
-    def __str__(self):
-        left_part = ", ".join(map(str, self.lst)) \
-            if isinstance(self.lst, list) else self.lst
-        if self.tail:
-            return f'[{left_part} | {self.tail}]'
-
-        return f'[{left_part}]'
-
-    def __repr__(self):
-        return str(self)
-
-
 class Dot:
     def __init__(self, head, tail=None):
         self._name = '.'
@@ -234,7 +120,7 @@ class Bar:
         tail_match = self.tail.match(other_tail)
 
         if head_match is not None and tail_match is not None:
-            return head_match | tail_match
+            return {**head_match, **tail_match}
 
         return None
 
