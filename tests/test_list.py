@@ -1,4 +1,4 @@
-from prolog.types import List, Term, Variable, FALSE, Dot
+from prolog.types import List, Term, Variable, FALSE, Dot, Bar
 from prolog.interpreter import Runtime
 from prolog.parser import Parser
 from prolog.scanner import Scanner
@@ -6,7 +6,7 @@ from prolog.scanner import Scanner
 
 def test_dot_print():
     l1 = str(Dot('A', Dot('B')))
-    assert '.(A, .(B, []))' == l1
+    assert "['A', 'B']" == l1
 
 
 def test_dot_iterator():
@@ -72,8 +72,11 @@ def test_list_with_bar_variable_tail():
     a2_2 = Term('a2')
     a2_3 = Term('a3')
 
-    l1 = List([a1_1, a1_2], bar_tail)
-    l2 = List([a2_1, a2_2, a2_3])
+    l1 = Bar(
+        Dot.from_list([a1_1, a1_2]),
+        bar_tail
+    )
+    l2 = Dot.from_list([a2_1, a2_2, a2_3])
 
     m = l1.match(l2)
     assert(str(m) == '{X: [a3]}')
@@ -230,6 +233,34 @@ def test_parser_bind_list_with_vars():
 
     expected_binding = [
         '{R: red, G: green, B: blue}'
+    ]
+
+    has_solution = False
+    for index, item in enumerate(runtime.execute(goal)):
+        has_solution = True
+        assert str(goal.match(item)) == expected_binding[index]
+
+    assert has_solution is True
+
+
+def test_parser_bind_list_with_bar_tail_var():
+    source = '''
+    rgb([red, green, blue]).
+    '''
+
+    tokens = Scanner(source).tokenize()
+    rules = Parser(tokens).parse_rules()
+
+    runtime = Runtime(rules)
+
+    goal_text = 'rgb([red, green | H]).'
+
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_terms()
+
+    expected_binding = [
+        '{H: [blue]}'
     ]
 
     has_solution = False
