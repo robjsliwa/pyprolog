@@ -164,6 +164,34 @@ no
 >   
 ```
 
+Simple Prolog also has support for lists.  Here are some examples:
+
+```
+Welcome to Simple Prolog
+ctrl-c to quit
+> rgb([red, green, blue]).
+yes
+> rgb([R, G, B]).
+R = red G = green B = blue 
+yes
+> rgb([_, G, _]).
+G = green 
+yes
+> rgb([R, green, B]).
+R = red B = blue 
+yes
+> rgb([red, green | H]).
+H = [blue] 
+yes
+> rgb([H | T]).
+H = red T = [green, blue] 
+yes
+> rgb([H | [X, Y]]).
+H = red X = green Y = blue 
+yes
+> 
+```
+
 ## Test
 
 Linter:
