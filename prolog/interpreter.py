@@ -119,6 +119,12 @@ class Runtime:
         self.stream.truncate(0)
         self.stream_pos = 0
 
+    def register_function(func):
+        # import inspect
+        # def aMethod(arg1, arg2): pass
+        # print(inspect.getargspec(aMethod))
+        pass
+
     def insert_rule_left(self, entry):
         if isinstance(entry, Term):
             entry = Rule(entry, TRUE())
