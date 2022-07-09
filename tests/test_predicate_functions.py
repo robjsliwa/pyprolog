@@ -10,6 +10,12 @@ def color_predicate():
         yield Term(color)
 
 
+def point_predicate():
+    points = [(1, 1), (2, 2), (3, 3)]
+    for point in points:
+        yield Term(point[0]), Term(point[1])
+
+
 def test_simple_predicate_function():
     source = '''
     rgb(red, green, blue).
@@ -35,6 +41,41 @@ def test_simple_predicate_function():
         '{Color: red}',
         '{Color: gree}',
         '{Color: blue}'
+    ]
+
+    has_solution = False
+    for index, item in enumerate(runtime.execute(goal)):
+        has_solution = True
+        assert str(goal.match(item)) == expected_binding[index]
+
+    assert has_solution is True
+
+
+def test_two_variable_predicate_function():
+    source = '''
+    rgb(red, green, blue).
+    color1(grey).
+    color2(grey, white).
+    nocolor.
+    '''
+
+    tokens = Scanner(source).tokenize()
+    rules = Parser(tokens).parse_rules()
+
+    runtime = Runtime(rules)
+
+    runtime.register_function(point_predicate, 'point', 2)
+
+    goal_text = 'point(X, Y).'
+
+    goal = Parser(
+        Scanner(goal_text).tokenize()
+    ).parse_terms()
+
+    expected_binding = [
+        '{X: 1, Y: 1}',
+        '{X: 2, Y: 2}',
+        '{X: 3, Y: 3}'
     ]
 
     has_solution = False
