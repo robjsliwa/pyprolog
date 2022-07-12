@@ -190,6 +190,38 @@ class Term:
         return str(self)
 
 
+class TermFunction(Term):
+    def __init__(self, func, predicate, *args):
+        super().__init__(predicate, *args)
+        self._func = func
+
+    def _execute_func(self):
+        result = next(self._func())
+        if isinstance(result, tuple):
+            self.args = [*result]
+        else:
+            self.args = [result]
+
+    def match(self, other):
+        if isinstance(other, Term):
+            if self.pred != other.pred or \
+               len(self.args) != len(other.args):
+                return None
+
+            self._execute_func()
+            m = list(
+                    map(
+                        (lambda arg1, arg2: arg1.match(arg2)),
+                        self.args,
+                        other.args
+                    )
+            )
+
+            return reduce(merge_bindings, [{}] + m)
+
+        return other.match(self)
+
+
 class Logic():
     def __init__(self, expression):
         self._expression = expression

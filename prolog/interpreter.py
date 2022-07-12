@@ -1,6 +1,6 @@
 import io
-from .types import Variable, Term, merge_bindings, Arithmetic, Logic, \
-    FALSE, TRUE, CUT
+from .types import TermFunction, Variable, Term, merge_bindings, \
+    Arithmetic, Logic, FALSE, TRUE, CUT
 from .builtins import Write, Nl, Tab, Fail, Cut, Retract, AssertA, AssertZ
 
 
@@ -118,6 +118,13 @@ class Runtime:
         self.stream.seek(0)
         self.stream.truncate(0)
         self.stream_pos = 0
+
+    def register_function(self, func, predicate, arity):
+        args = []
+        for i in range(arity):
+            args.append(f'placeholder_{i}')
+        tf = TermFunction(func, predicate, *args)
+        self.rules.append(Rule(tf, TRUE()))
 
     def insert_rule_left(self, entry):
         if isinstance(entry, Term):
