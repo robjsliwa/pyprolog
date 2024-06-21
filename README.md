@@ -3,44 +3,44 @@
 ![badges](https://github.com/robjsliwa/pyprolog/actions/workflows/python-package.yml/badge.svg)
 [![license](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
 
+## Set up environment
+
+```bash
+python -m venv .venv
+.\.venv\Scripts\activate
+```
+
 ## Install dependencies
 
-```
-poetry install
+```bash
+pip install -r requirements.txt
 ```
 
 ## Run REPL
 
-Using poetry:
 
-```
-poetry run prolog [options] path
-```
-
-or
-
-```
+```bash
 python -m prolog.prolog [options] path
 ```
 
 For example,
 
-```
-poetry run prolog tests/data/puzzle1.prolog
+```bash
+python -m prolog.prolog tests/data/puzzle1.prolog
 ```
 
 Sample REPL session output:
 
-```
-poetry run prolog tests/data/myadven.prolog 
+```bash
+python -m prolog.prolog tests/data/myadven.prolog 
 
 Welcome to Simple Prolog
 ctrl-c to quit
-> location(desk, office)
+> location(desk, office).
 yes
-> location(desk, office1)
+> location(desk, office1).
 no
-> location(X, Y)
+> location(X, Y).
 X = desk Y = office 
 X = apple Y = kitchen 
 X = flashlight Y = desk 
@@ -197,7 +197,7 @@ yes
 Linter:
 
 ```
-poetry run flake8
+python -m flake8
 ```
 
 Tests:
