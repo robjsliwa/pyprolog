@@ -22,9 +22,11 @@ if os.name == 'nt':
 
     def wait_for_char():
         return msvcrt.getch().decode()
+
 else:
     import tty
     import termios
+
     fd = sys.stdin.fileno()
     old_settings = termios.tcgetattr(fd)
 
@@ -88,17 +90,16 @@ def run_repl(runtime):
         while True:
             query = prompt(
                 '> ',
-                history=FileHistory(os.path.join(
-                    home_path, '.simpleprolog_history')),
-                auto_suggest=AutoSuggestFromHistory()
+                history=FileHistory(
+                    os.path.join(home_path, '.simpleprolog_history')
+                ),
+                auto_suggest=AutoSuggestFromHistory(),
             )
             if query == '':
                 continue
 
             try:
-                goal = Parser(
-                    Scanner(query).tokenize()
-                ).parse_query()
+                goal = Parser(Scanner(query).tokenize()).parse_query()
 
                 runtime.reset_stream()
 

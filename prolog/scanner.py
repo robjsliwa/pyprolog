@@ -27,7 +27,7 @@ class Scanner:
             'is': TokenType.IS,
             'retract': TokenType.RETRACT,
             'asserta': TokenType.ASSERTA,
-            'assertz': TokenType.ASSERTZ
+            'assertz': TokenType.ASSERTZ,
         }
         return keywords
 
@@ -35,16 +35,10 @@ class Scanner:
         self._add_token_with_literal(token_type, None)
 
     def _add_token_with_literal(self, token_type, literal, lex=None):
-        lexeme = self._source[self._start:self._current] if lex is None \
-            else lex
-        self._tokens.append(
-            Token(
-                token_type,
-                lexeme,
-                literal,
-                self._line
-            )
+        lexeme = (
+            self._source[self._start : self._current] if lex is None else lex
         )
+        self._tokens.append(Token(token_type, lexeme, literal, self._line))
 
     def _is_at_end(self):
         return self._current >= len(self._source)
@@ -54,7 +48,7 @@ class Scanner:
         return self._source[self._current - 1]
 
     def _make_token(self, token_type, literal, line):
-        lexeme = self._source[self._start:self._current]
+        lexeme = self._source[self._start : self._current]
         return Token(token_type, lexeme, literal, line)
 
     def _is_next(self, expected):
@@ -81,10 +75,12 @@ class Scanner:
         return c >= '0' and c <= '9'
 
     def _is_alphanumeric(self, c):
-        return (c >= 'a' and c <= 'z') or \
-            (c >= 'A' and c <= 'Z') or \
-            (c >= '0' and c <= '9') or \
-            (c == '_')
+        return (
+            (c >= 'a' and c <= 'z')
+            or (c >= 'A' and c <= 'Z')
+            or (c >= '0' and c <= '9')
+            or (c == '_')
+        )
 
     def _is_lowercase_alpha(self, c):
         return c >= 'a' and c <= 'z'
@@ -102,7 +98,7 @@ class Scanner:
             self._report(self._line, f'"{strnum}" is not a number.')
 
     def _is_keyword(self):
-        value = self._source[self._start:self._current]
+        value = self._source[self._start : self._current]
         token_type = self._keywords.get(value, TokenType.ATOM)
         return token_type
 
@@ -128,7 +124,7 @@ class Scanner:
             while self._is_digit(self._peek()):
                 self._advance()
 
-        value = self._str_to_number(self._source[self._start:self._current])
+        value = self._str_to_number(self._source[self._start : self._current])
         self._add_token_with_literal(TokenType.NUMBER, value)
 
     def _process_string_literal(self):
@@ -142,7 +138,7 @@ class Scanner:
 
         self._advance()
 
-        literal = self._source[self._start+1:self._current-1]
+        literal = self._source[self._start + 1 : self._current - 1]
         self._add_token_with_literal(TokenType.ATOM, literal, literal)
 
     def _scan_token(self):
@@ -153,8 +149,7 @@ class Scanner:
         elif c == '\n':
             self._line += 1
         elif c == '%':
-            while not self._peek() == '\n' and \
-                  not self._is_at_end():
+            while not self._peek() == '\n' and not self._is_at_end():
                 self._advance()
         elif c == '/' and self._is_next('*'):
             while not self._is_at_end():

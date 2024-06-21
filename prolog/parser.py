@@ -77,9 +77,7 @@ class Parser:
             return PrimaryExpression(Number(number_value))
         elif self._is_type(token, TokenType.VARIABLE):
             self._advance()
-            return PrimaryExpression(
-                self._create_variable(token.lexeme)
-            )
+            return PrimaryExpression(self._create_variable(token.lexeme))
         elif self._is_type(token, TokenType.LEFTPAREN):
             self._advance()
             expr = self._parse_expression()
@@ -87,22 +85,18 @@ class Parser:
             prev_token = self._advance()  # consume ')'
             if prev_token.token_type != TokenType.RIGHTPAREN:
                 self._report(
-                    self._peek().line,
-                    f'Expected ")" after expression: {expr}'
+                    self._peek().line, f'Expected ")" after expression: {expr}'
                 )
             return expr
 
         self._report(
-            self._peek().line,
-            f'Expected number or variable but got: {token}'
+            self._peek().line, f'Expected number or variable but got: {token}'
         )
 
     def _parse_equality(self):
         expr = self._parse_comperison()
 
-        while self._token_matches(
-            [TokenType.EQUALEQUAL, TokenType.EQUALSLASH]
-        ):
+        while self._token_matches([TokenType.EQUALEQUAL, TokenType.EQUALSLASH]):
             self._advance()
             operator = self._previous().lexeme
             right = self._parse_comperison()
@@ -112,12 +106,14 @@ class Parser:
     def _parse_comperison(self):
         expr = self._parse_addition()
 
-        while self._token_matches([
-            TokenType.GREATER,
-            TokenType.GREATEREQUAL,
-            TokenType.LESS,
-            TokenType.EQUALLESS
-        ]):
+        while self._token_matches(
+            [
+                TokenType.GREATER,
+                TokenType.GREATEREQUAL,
+                TokenType.LESS,
+                TokenType.EQUALLESS,
+            ]
+        ):
             self._advance()
             operator = self._previous().lexeme
             right = self._parse_addition()
@@ -150,39 +146,40 @@ class Parser:
     def _parse_arithmetic(self, token):
         self._advance()  # consume IS
 
-        return self._create_variable(
-            token.lexeme,
-            self._parse_expression()
-        )
+        return self._create_variable(token.lexeme, self._parse_expression())
 
     def _parse_logic(self):
         return Logic(self._parse_equality())
 
     def _parse_atom(self):
         token = self._peek()
-        if not self._token_matches([
-            TokenType.VARIABLE,
-            TokenType.UNDERSCORE,
-            TokenType.NUMBER,
-            TokenType.FAIL,
-            TokenType.WRITE,
-            TokenType.NL,
-            TokenType.TAB,
-            TokenType.RETRACT,
-            TokenType.ASSERTA,
-            TokenType.ASSERTZ,
-            TokenType.CUT,
-            TokenType.ATOM
-        ]):
+        if not self._token_matches(
+            [
+                TokenType.VARIABLE,
+                TokenType.UNDERSCORE,
+                TokenType.NUMBER,
+                TokenType.FAIL,
+                TokenType.WRITE,
+                TokenType.NL,
+                TokenType.TAB,
+                TokenType.RETRACT,
+                TokenType.ASSERTA,
+                TokenType.ASSERTZ,
+                TokenType.CUT,
+                TokenType.ATOM,
+            ]
+        ):
             self._report(token.line, f'Bad atom name: {token.lexeme}')
 
         if self._is_type(token, TokenType.NUMBER):
-            if self._peek_next().token_type == TokenType.COLONMINUS or \
-               self._peek_next().token_type == TokenType.DOT or \
-               self._peek_next().token_type == TokenType.LEFTPAREN:
+            if (
+                self._peek_next().token_type == TokenType.COLONMINUS
+                or self._peek_next().token_type == TokenType.DOT
+                or self._peek_next().token_type == TokenType.LEFTPAREN
+            ):
                 self._report(
                     self._peek().line,
-                    f'Number cannot be a rule: {self._peek()}'
+                    f'Number cannot be a rule: {self._peek()}',
                 )
 
         self._advance()
@@ -191,8 +188,7 @@ class Parser:
     def _parse_buildin_single_arg(self, predicate, args):
         if len(args) != 1:
             self._report(
-                self._peek().line,
-                f'{predicate} requires exactly one argument'
+                self._peek().line, f'{predicate} requires exactly one argument'
             )
         if predicate == 'retract':
             return Retract(args[0])
@@ -228,10 +224,7 @@ class Parser:
         if dot_tail is None:
             return Dot.from_list(dot_list)
 
-        return Bar(
-            Dot.from_list(dot_list),
-            dot_tail
-        )
+        return Bar(Dot.from_list(dot_list), dot_tail)
 
     def _parse_term(self):
         if self._token_matches(TokenType.LEFTPAREN):
@@ -239,25 +232,29 @@ class Parser:
             args = []
             while not self._token_matches(TokenType.RIGHTPAREN):
                 args.append(self._parse_term())
-                if not self._token_matches(TokenType.COMMA) and \
-                   not self._token_matches(TokenType.RIGHTPAREN):
+                if not self._token_matches(
+                    TokenType.COMMA
+                ) and not self._token_matches(TokenType.RIGHTPAREN):
                     self._report(
                         self._peek().line,
-                        f'Expecter , or ) in term but got {self._peek()}')
+                        f'Expecter , or ) in term but got {self._peek()}',
+                    )
                 if self._token_matches(TokenType.COMMA):
                     self._advance()
 
             self._advance()
             return Conjunction(args)
 
-        if self._next_token_matches([
-            TokenType.EQUALEQUAL,
-            TokenType.EQUALSLASH,
-            TokenType.EQUALLESS,
-            TokenType.LESS,
-            TokenType.GREATEREQUAL,
-            TokenType.GREATER
-        ]):
+        if self._next_token_matches(
+            [
+                TokenType.EQUALEQUAL,
+                TokenType.EQUALSLASH,
+                TokenType.EQUALLESS,
+                TokenType.LESS,
+                TokenType.GREATEREQUAL,
+                TokenType.GREATER,
+            ]
+        ):
             return self._parse_logic()
 
         if self._token_matches(TokenType.LEFTBRACKET):
@@ -265,8 +262,9 @@ class Parser:
 
         token = self._parse_atom()
         predicate = token.lexeme
-        if self._is_type(token, TokenType.VARIABLE) or \
-           self._is_type(token, TokenType.UNDERSCORE):
+        if self._is_type(token, TokenType.VARIABLE) or self._is_type(
+            token, TokenType.UNDERSCORE
+        ):
             if self._is_type(token, TokenType.UNDERSCORE):
                 return Variable('_')
 
@@ -299,11 +297,13 @@ class Parser:
         args = []
         while not self._token_matches(TokenType.RIGHTPAREN):
             args.append(self._parse_term())
-            if not self._token_matches(TokenType.COMMA) and \
-               not self._token_matches(TokenType.RIGHTPAREN):
+            if not self._token_matches(
+                TokenType.COMMA
+            ) and not self._token_matches(TokenType.RIGHTPAREN):
                 self._report(
                     self._peek().line,
-                    f'Expected , or ) in term but got {self._peek()}')
+                    f'Expected , or ) in term but got {self._peek()}',
+                )
 
             if self._token_matches(TokenType.COMMA):
                 self._advance()
@@ -327,18 +327,20 @@ class Parser:
 
         if not self._token_matches(TokenType.COLONMINUS):
             self._report(
-                self._peek().line,
-                f'Expected :- in rule but got {self._peek()}')
+                self._peek().line, f'Expected :- in rule but got {self._peek()}'
+            )
 
         self._advance()
         args = []
         while not self._token_matches(TokenType.DOT):
             args.append(self._parse_term())
-            if not self._token_matches(TokenType.COMMA) and \
-               not self._token_matches(TokenType.DOT):
+            if not self._token_matches(
+                TokenType.COMMA
+            ) and not self._token_matches(TokenType.DOT):
                 self._report(
                     self._peek().line,
-                    f'Expected , or . in term but got {self._peek()}')
+                    f'Expected , or . in term but got {self._peek()}',
+                )
 
             if self._token_matches(TokenType.COMMA):
                 self._advance()
@@ -370,19 +372,19 @@ class Parser:
             return head
 
         if self._token_matches(TokenType.COLONMINUS):
-            self._report(
-                self._peek().line,
-                'Cannot use rule as a query')
+            self._report(self._peek().line, 'Cannot use rule as a query')
 
         self._advance()
         args = [head]
         while not self._token_matches(TokenType.DOT):
             args.append(self._parse_term())
-            if not self._token_matches(TokenType.COMMA) and \
-               not self._token_matches(TokenType.DOT):
+            if not self._token_matches(
+                TokenType.COMMA
+            ) and not self._token_matches(TokenType.DOT):
                 self._report(
                     self._peek().line,
-                    f'Expected , or . in term but got {self._peek()}')
+                    f'Expected , or . in term but got {self._peek()}',
+                )
 
             if self._token_matches(TokenType.COMMA):
                 self._advance()

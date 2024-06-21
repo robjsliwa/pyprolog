@@ -1,6 +1,15 @@
 import io
-from .types import TermFunction, Variable, Term, merge_bindings, \
-    Arithmetic, Logic, FALSE, TRUE, CUT
+from .types import (
+    TermFunction,
+    Variable,
+    Term,
+    merge_bindings,
+    Arithmetic,
+    Logic,
+    FALSE,
+    TRUE,
+    CUT,
+)
 from .builtins import Write, Nl, Tab, Fail, Cut, Retract, AssertA, AssertZ
 
 
@@ -21,16 +30,20 @@ class Conjunction(Term):
         super().__init__(None, *args)
 
     def _is_builtin(self, arg):
-        if isinstance(arg, Write) or \
-           isinstance(arg, Nl) or \
-           isinstance(arg, Tab):
+        if (
+            isinstance(arg, Write)
+            or isinstance(arg, Nl)
+            or isinstance(arg, Tab)
+        ):
             return True
         return False
 
     def _is_db_builtin(self, arg):
-        if isinstance(arg, Retract) or \
-           isinstance(arg, AssertA) or \
-           isinstance(arg, AssertZ):
+        if (
+            isinstance(arg, Retract)
+            or isinstance(arg, AssertA)
+            or isinstance(arg, AssertZ)
+        ):
             return True
         return False
 
@@ -52,10 +65,7 @@ class Conjunction(Term):
                 arg = self.args[index]
                 if self._is_cut(arg):
                     for item in runtime.execute(arg.substitute(bindings)):
-                        unified = merge_bindings(
-                            arg.match(item),
-                            bindings
-                        )
+                        unified = merge_bindings(arg.match(item), bindings)
                         if unified is not None:
                             yield from solutions(index + 1, unified)
                             yield CUT()
@@ -69,19 +79,13 @@ class Conjunction(Term):
                     yield from solutions(index + 1, bindings)
                 elif isinstance(arg, Arithmetic):
                     val = arg.substitute(bindings).evaluate()
-                    unified = merge_bindings(
-                        {arg.var: val},
-                        bindings
-                    )
+                    unified = merge_bindings({arg.var: val}, bindings)
                     yield from solutions(index + 1, unified)
                 elif isinstance(arg, Logic):
                     yield arg.substitute(bindings).evaluate()
                 else:
                     for item in runtime.execute(arg.substitute(bindings)):
-                        unified = merge_bindings(
-                            arg.match(item),
-                            bindings
-                        )
+                        unified = merge_bindings(arg.match(item), bindings)
                         if unified is not None:
                             yield from solutions(index + 1, unified)
 
@@ -89,10 +93,7 @@ class Conjunction(Term):
 
     def substitute(self, bindings):
         return Conjunction(
-            map(
-                (lambda arg: arg.substitute(bindings)),
-                self.args
-            )
+            map((lambda arg: arg.substitute(bindings)), self.args)
         )
 
 
@@ -146,20 +147,32 @@ class Runtime:
         if last_index == -1:
             self.rules.append(entry)
         else:
-            self.rules.insert(last_index+1, entry)
+            self.rules.insert(last_index + 1, entry)
 
     def remove_rule(self, rule):
         if isinstance(rule, Term):
             rule = Rule(rule, TRUE())
         for i, item in enumerate(self.rules):
-            if rule.head.pred == item.head.pred and \
-               len(rule.head.args) == len(item.head.args) and \
-               all([
-                   x.pred == y.pred if isinstance(x, Term) and isinstance(y, Term)  # noqa
-                   else x.name == y.name if isinstance(x, Variable) and isinstance(y, Variable)  # noqa
-                   else False
-                   for x, y in zip(rule.head.args, item.head.args)
-                    ]):
+            if (
+                rule.head.pred == item.head.pred
+                and len(rule.head.args) == len(item.head.args)
+                and all(
+                    [
+                        (
+                            x.pred == y.pred
+                            if isinstance(x, Term)
+                            and isinstance(y, Term)  # noqa
+                            else (
+                                x.name == y.name
+                                if isinstance(x, Variable)
+                                and isinstance(y, Variable)  # noqa
+                                else False
+                            )
+                        )
+                        for x, y in zip(rule.head.args, item.head.args)
+                    ]
+                )
+            ):
                 self.rules.pop(i)
                 break
 
