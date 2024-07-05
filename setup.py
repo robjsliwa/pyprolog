@@ -4,7 +4,7 @@ with open('requirements.txt') as f:
     required = f.read().splitlines()
 
 setup(
-    name='pyprolog',
+    name='pieprolog',
     version='1.0.0',
     packages=find_packages(),
     include_package_data=True,

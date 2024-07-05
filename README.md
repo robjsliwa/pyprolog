@@ -211,7 +211,7 @@ poetry run  pytest --cov=prolog tests
 Install pyprolog:
 
 ```bash
-pip install pyprolog
+pip install pieprolog
 ```
 
 Here is an example how to use PyProlog as a library:
