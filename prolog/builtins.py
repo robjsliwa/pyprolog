@@ -63,10 +63,7 @@ class Write(BuiltinsBase):
         return {}
 
     def substitute(self, bindings):
-        result = Write(*map(
-            (lambda arg: arg.substitute(bindings)),
-            self.args
-        ))
+        result = Write(*map((lambda arg: arg.substitute(bindings)), self.args))
         return result
 
     def display(self, stream_writer):
@@ -142,10 +139,7 @@ class DatabaseOp(ABC):
         param_bound = list(self.arg.query(runtime))
         if param_bound:
             param_bound = param_bound[0]
-            unified = merge_bindings(
-                self.match(param_bound),
-                bindings
-            )
+            unified = merge_bindings(self.match(param_bound), bindings)
             self.substitute(unified).execute(runtime)
         else:
             self.substitute(bindings).execute(runtime)

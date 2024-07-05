@@ -48,18 +48,10 @@ class Dot:
 
     @staticmethod
     def concat(dot1, dot2):
-        return Dot.from_list(
-            list(dot1) + list(dot2)
-        )
+        return Dot.from_list(list(dot1) + list(dot2))
 
     def _match_lsts(self, lst1, lst2):
-        m = list(
-                map(
-                    (lambda arg1, arg2: arg1.match(arg2)),
-                    lst1,
-                    lst2
-                )
-        )
+        m = list(map((lambda arg1, arg2: arg1.match(arg2)), lst1, lst2))
 
         return reduce(merge_bindings, [{}] + m)
 
@@ -77,10 +69,9 @@ class Dot:
         return None
 
     def substitute(self, bindings):
-        return Dot.from_list(list(map(
-            (lambda arg: arg.substitute(bindings)),
-            self
-        )))
+        return Dot.from_list(
+            list(map((lambda arg: arg.substitute(bindings)), self))
+        )
 
     def query(self, runtime):
         yield from runtime.execute(self)
@@ -112,8 +103,8 @@ class Bar:
         if not isinstance(other, Dot):
             return None
 
-        other_left = list(other)[:len(list(self.head))]
-        other_right = list(other)[len(list(self.head)):]
+        other_left = list(other)[: len(list(self.head))]
+        other_right = list(other)[len(list(self.head)) :]
         other_head = Dot.from_list(other_left)
         other_tail = Dot.from_list(other_right)
         head_match = self.head.match(other_head)
@@ -155,16 +146,13 @@ class Term:
 
     def match(self, other):
         if isinstance(other, Term):
-            if self.pred != other.pred or \
-               len(self.args) != len(other.args):
+            if self.pred != other.pred or len(self.args) != len(other.args):
                 return None
 
             m = list(
-                    map(
-                        (lambda arg1, arg2: arg1.match(arg2)),
-                        self.args,
-                        other.args
-                    )
+                map(
+                    (lambda arg1, arg2: arg1.match(arg2)), self.args, other.args
+                )
             )
 
             return reduce(merge_bindings, [{}] + m)
@@ -172,10 +160,9 @@ class Term:
         return other.match(self)
 
     def substitute(self, bindings):
-        return Term(self.pred, *map(
-            (lambda arg: arg.substitute(bindings)),
-            self.args
-        ))
+        return Term(
+            self.pred, *map((lambda arg: arg.substitute(bindings)), self.args)
+        )
 
     def query(self, runtime):
         yield from runtime.execute(self)
@@ -204,17 +191,14 @@ class TermFunction(Term):
 
     def match(self, other):
         if isinstance(other, Term):
-            if self.pred != other.pred or \
-               len(self.args) != len(other.args):
+            if self.pred != other.pred or len(self.args) != len(other.args):
                 return None
 
             self._execute_func()
             m = list(
-                    map(
-                        (lambda arg1, arg2: arg1.match(arg2)),
-                        self.args,
-                        other.args
-                    )
+                map(
+                    (lambda arg1, arg2: arg1.match(arg2)), self.args, other.args
+                )
             )
 
             return reduce(merge_bindings, [{}] + m)
@@ -222,7 +206,7 @@ class TermFunction(Term):
         return other.match(self)
 
 
-class Logic():
+class Logic:
     def __init__(self, expression):
         self._expression = expression
 
@@ -392,6 +376,7 @@ class ExpressionBinder(Visitor):
     This returns identical expression tree as the input but with variables
     replaced with values.
     """
+
     def __init__(self, bindings):
         self._bindings = bindings
 

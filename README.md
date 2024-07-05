@@ -3,44 +3,44 @@
 ![badges](https://github.com/robjsliwa/pyprolog/actions/workflows/python-package.yml/badge.svg)
 [![license](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
 
+## Set up environment
+
+```bash
+python -m venv .venv
+.\.venv\Scripts\activate
+```
+
 ## Install dependencies
 
-```
-poetry install
+```bash
+pip install -r requirements.txt
 ```
 
 ## Run REPL
 
-Using poetry:
 
-```
-poetry run prolog [options] path
-```
-
-or
-
-```
+```bash
 python -m prolog.prolog [options] path
 ```
 
 For example,
 
-```
-poetry run prolog tests/data/puzzle1.prolog
+```bash
+python -m prolog.prolog tests/data/puzzle1.prolog
 ```
 
 Sample REPL session output:
 
-```
-poetry run prolog tests/data/myadven.prolog 
+```bash
+python -m prolog.prolog tests/data/myadven.prolog 
 
 Welcome to Simple Prolog
 ctrl-c to quit
-> location(desk, office)
+> location(desk, office).
 yes
-> location(desk, office1)
+> location(desk, office1).
 no
-> location(X, Y)
+> location(X, Y).
 X = desk Y = office 
 X = apple Y = kitchen 
 X = flashlight Y = desk 
@@ -197,13 +197,64 @@ yes
 Linter:
 
 ```
-poetry run flake8
+python -m flake8
 ```
 
 Tests:
 
 ```
 poetry run  pytest --cov=prolog tests
+```
+
+## How to Use PyProlog as a Library
+
+Install pyprolog:
+
+```bash
+pip install pyprolog
+```
+
+Here is an example how to use PyProlog as a library:
+
+```python
+from prolog import Scanner, Parser, Runtime
+
+
+def main():
+    source = '''
+    location(computer, office).
+    location(knife, kitchen).
+    location(chair, office).
+    location(shoe, hall).
+
+    isoffice(X) :- location(computer, X), location(chair, X).
+    '''
+
+    tokens = Scanner(source).tokenize()
+    rules = Parser(tokens).parse_rules()
+
+    runtime = Runtime(rules)
+
+    goal_text = 'location(X, office).'
+
+    goal = Parser(Scanner(goal_text).tokenize()).parse_terms()
+
+    x = goal.args[0]
+
+    has_solution = False
+    for index, item in enumerate(runtime.execute(goal)):
+        has_solution = True
+        print(str(item))
+        print(str(goal.match(item).get(x)))
+
+    if has_solution:
+        print('Query has solution')
+    else:
+        print('Query has no solution')
+
+
+if __name__ == "__main__":
+    main()
 ```
 
 ## Acknoledgments

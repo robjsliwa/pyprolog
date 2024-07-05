@@ -8,12 +8,15 @@ class LogicInterpreter(Visitor):
     This class walks the expression tree and evaluates returning
     the computed value.
     """
+
     def _evaluate_expr(self, expr):
         return expr.accept(self)
 
     def _compute_binary_operand(self, left, operand, right):
         if type(left) != type(right):
-            raise InterpreterError(f'left {left} and right {right} operand must have the same type')  # noqa
+            raise InterpreterError(
+                f'left {left} and right {right} operand must have the same type'
+            )  # noqa
         if operand == '==':
             return left.equal(right)
         elif operand == '=/':
