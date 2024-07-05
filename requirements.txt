@@ -1,5 +1,2 @@
-flake8
-pytest
-pytest-cov
 colorama
 prompt-toolkit
