@@ -192,6 +192,8 @@ class Scanner:
             self._add_token(TokenType.SLASH)
         elif c == '+':
             self._add_token(TokenType.PLUS)
+        elif c == '\\' and self._is_next('+'):
+            self._add_token(TokenType.NEGATION)
         elif c == '-':
             self._add_token(TokenType.MINUS)
         elif c == '=' and self._is_next('='):

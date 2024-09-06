@@ -33,6 +33,28 @@ class BinaryExpression(Expr):
         return str(self)
 
 
+class Negation(Expr):
+    def __init__(self, operand):
+        self.operand = operand
+
+    def evaluate(self, context):
+        return not self.operand.evaluate(context)
+
+    def accept(self, visitor):
+        return visitor.visit_negation(self)
+
+    def substitute(self, substitution):
+        return Negation(self.operand.substitute(substitution))
+
+    def query(self, interpreter):
+        # The query method for negation should ensure the operand fails
+        result = list(self.operand.query(interpreter))
+        if not result:  # Operand fails, negation succeeds
+            yield {}
+        else:  # Operand succeeds, negation fails
+            return
+
+
 class UnaryExpression:
     def __init__(self, operand, right):
         self.operand = operand

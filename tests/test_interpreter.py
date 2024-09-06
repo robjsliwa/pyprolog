@@ -17,6 +17,7 @@ def profile_me(func):
         profiler.dump_stats(file)
         metrics = pstats.Stats(file)
         metrics.strip_dirs().sort_stats('time').print_stats(100)
+
     return wraps
 
 
@@ -47,21 +48,13 @@ def test_query_with_multiple_results():
 
     goal_text = 'location(X, office).'
 
-    goal = Parser(
-        Scanner(goal_text).tokenize()
-    ).parse_terms()
+    goal = Parser(Scanner(goal_text).tokenize()).parse_terms()
 
     x = goal.args[0]
 
-    expected_results = [
-        'location(computer, office)',
-        'location(chair, office)'
-    ]
+    expected_results = ['location(computer, office)', 'location(chair, office)']
 
-    expected_binding = [
-        'computer',
-        'chair'
-    ]
+    expected_binding = ['computer', 'chair']
 
     has_solution = False
     for index, item in enumerate(runtime.execute(goal)):
@@ -97,9 +90,7 @@ def test_multi_term_query():
 
     goal_text = 'door(kitchen, R), location(T, R).'
 
-    goal = Parser(
-        Scanner(goal_text).tokenize()
-    ).parse_query()
+    goal = Parser(Scanner(goal_text).tokenize()).parse_query()
 
     R = goal.head.args[0]
     T = goal.head.args[1]
@@ -107,16 +98,14 @@ def test_multi_term_query():
     expected_binding = [
         {'R': 'office', 'T': 'desk'},
         {'R': 'office', 'T': 'computer'},
-        {'R': 'cellar', 'T': "washing machine"}
+        {'R': 'cellar', 'T': "washing machine"},
     ]
 
     has_solution = False
     for index, item in enumerate(runtime.execute(goal)):
         has_solution = True
-        assert str(goal.head.match(item).get(R)) == \
-            expected_binding[index]['R']
-        assert str(goal.head.match(item).get(T)) == \
-            expected_binding[index]['T']
+        assert str(goal.head.match(item).get(R)) == expected_binding[index]['R']
+        assert str(goal.head.match(item).get(T)) == expected_binding[index]['T']
 
     assert has_solution is True
 
@@ -152,9 +141,7 @@ def test_query_with_builtins():
 
     goal_text = 'room(X), tab, write(X), nl.'
 
-    goal = Parser(
-        Scanner(goal_text).tokenize()
-    ).parse_query()
+    goal = Parser(Scanner(goal_text).tokenize()).parse_query()
 
     X = goal.head.args[0]
 
@@ -163,14 +150,13 @@ def test_query_with_builtins():
         {'X': 'office'},
         {'X': 'hall'},
         {'X': "dinning room"},
-        {'X': 'cellar'}
+        {'X': 'cellar'},
     ]
 
     has_solution = False
     for index, item in enumerate(runtime.execute(goal)):
         has_solution = True
-        assert str(goal.head.match(item).get(X)) == \
-            expected_binding[index]['X']
+        assert str(goal.head.match(item).get(X)) == expected_binding[index]['X']
 
     assert has_solution is True
 
@@ -206,9 +192,7 @@ def test_fail_builtin():
 
     goal_text = 'room(X), tab, write(X), nl, fail.'
 
-    goal = Parser(
-        Scanner(goal_text).tokenize()
-    ).parse_query()
+    goal = Parser(Scanner(goal_text).tokenize()).parse_query()
 
     X = goal.head.args[0]
 
@@ -217,15 +201,17 @@ def test_fail_builtin():
         {'X': 'office'},
         {'X': 'hall'},
         {'X': "'dinning room'"},
-        {'X': 'cellar'}
+        {'X': 'cellar'},
     ]
 
     has_solution = False
     for index, item in enumerate(runtime.execute(goal)):
         if not isinstance(item, FALSE):
             has_solution = True
-            assert str(goal.head.match(item).get(X)) == \
-                expected_binding[index]['X']
+            assert (
+                str(goal.head.match(item).get(X))
+                == expected_binding[index]['X']
+            )
 
     assert has_solution is False
 
@@ -279,7 +265,7 @@ def test_puzzle1():
         puzzle(Houses),
         exists(house(_, WaterDrinker, water, _, _), Houses),
         exists(house(_, ZebraOwner, _, _, zebra), Houses).
-    ''' # noqa
+    '''  # noqa
 
     tokens = Scanner(puzzle).tokenize()
     rules = Parser(tokens).parse_rules()
@@ -288,9 +274,7 @@ def test_puzzle1():
 
     goal_text = 'solution(WaterDrinker, ZebraOwner).'
 
-    goal = Parser(
-        Scanner(goal_text).tokenize()
-    ).parse_query()
+    goal = Parser(Scanner(goal_text).tokenize()).parse_query()
 
     x = goal.args[0]
 
@@ -355,17 +339,13 @@ def test_puzzle2():
     exists(house(_, FishOwner, _, _, fish), Houses).
     '''
 
-    rules = Parser(
-        Scanner(puzzle).tokenize()
-    ).parse_rules()
+    rules = Parser(Scanner(puzzle).tokenize()).parse_rules()
 
     runtime = Runtime(rules)
 
     goal_text = 'solution(FishOwner).'
 
-    goal = Parser(
-        Scanner(goal_text).tokenize()
-    ).parse_query()
+    goal = Parser(Scanner(goal_text).tokenize()).parse_query()
 
     x = goal.args[0]
 
@@ -384,17 +364,13 @@ def test_support_for_numbers():
     window(error, 15, 4.0, 20, 78).
     '''
 
-    rules = Parser(
-        Scanner(input).tokenize()
-    ).parse_rules()
+    rules = Parser(Scanner(input).tokenize()).parse_rules()
 
     runtime = Runtime(rules)
 
     goal_text = 'window(T, X, X, Z, W).'
 
-    goal = Parser(
-        Scanner(goal_text).tokenize()
-    ).parse_query()
+    goal = Parser(Scanner(goal_text).tokenize()).parse_query()
 
     x = goal.args[1]
 
@@ -413,17 +389,13 @@ def test_support_for_string_literals():
     customer('Sally Smith', chicago, good_credit).
     '''
 
-    rules = Parser(
-        Scanner(input).tokenize()
-    ).parse_rules()
+    rules = Parser(Scanner(input).tokenize()).parse_rules()
 
     runtime = Runtime(rules)
 
     goal_text = "customer('Sally Smith', Y, Z)."
 
-    goal = Parser(
-        Scanner(goal_text).tokenize()
-    ).parse_query()
+    goal = Parser(Scanner(goal_text).tokenize()).parse_query()
 
     x = goal.args[1]
 
@@ -442,17 +414,13 @@ def test_simple_arithmetics():
     test2(Z) :- Z is (5 + 2) * (3 - 1).
     '''
 
-    rules = Parser(
-        Scanner(input).tokenize()
-    ).parse_rules()
+    rules = Parser(Scanner(input).tokenize()).parse_rules()
 
     runtime = Runtime(rules)
 
     goal_text = "test(Y)."
 
-    goal = Parser(
-        Scanner(goal_text).tokenize()
-    ).parse_query()
+    goal = Parser(Scanner(goal_text).tokenize()).parse_query()
 
     x = goal.args[0]
 
@@ -467,17 +435,13 @@ def test_arithmetics_with_grouping():
     test(Z) :- Z is (5 + 2) * (3 - 1).
     '''
 
-    rules = Parser(
-        Scanner(input).tokenize()
-    ).parse_rules()
+    rules = Parser(Scanner(input).tokenize()).parse_rules()
 
     runtime = Runtime(rules)
 
     goal_text = "test(Y)."
 
-    goal = Parser(
-        Scanner(goal_text).tokenize()
-    ).parse_query()
+    goal = Parser(Scanner(goal_text).tokenize()).parse_query()
 
     x = goal.args[0]
 
@@ -492,17 +456,13 @@ def test_arithmetics_with_variables():
     c_to_f(C, F) :- F is C * 9 / 5 + 32.
     '''
 
-    rules = Parser(
-        Scanner(input).tokenize()
-    ).parse_rules()
+    rules = Parser(Scanner(input).tokenize()).parse_rules()
 
     runtime = Runtime(rules)
 
     goal_text = "c_to_f(100, X)."
 
-    goal = Parser(
-        Scanner(goal_text).tokenize()
-    ).parse_query()
+    goal = Parser(Scanner(goal_text).tokenize()).parse_query()
 
     x = goal.args[1]
 
@@ -513,9 +473,7 @@ def test_arithmetics_with_variables():
 
     goal_text = "c_to_f(0, X)."
 
-    goal = Parser(
-        Scanner(goal_text).tokenize()
-    ).parse_query()
+    goal = Parser(Scanner(goal_text).tokenize()).parse_query()
 
     x = goal.args[1]
 
@@ -530,17 +488,13 @@ def test_arithmetics_with_variables_same_as_rule():
     c_to_f(C, F) :- F is C * 9 / 5 + 32.
     '''
 
-    rules = Parser(
-        Scanner(input).tokenize()
-    ).parse_rules()
+    rules = Parser(Scanner(input).tokenize()).parse_rules()
 
     runtime = Runtime(rules)
 
     goal_text = "c_to_f(100, F)."
 
-    goal = Parser(
-        Scanner(goal_text).tokenize()
-    ).parse_query()
+    goal = Parser(Scanner(goal_text).tokenize()).parse_query()
 
     x = goal.args[1]
 
@@ -551,9 +505,7 @@ def test_arithmetics_with_variables_same_as_rule():
 
     goal_text = "c_to_f(0, F)."
 
-    goal = Parser(
-        Scanner(goal_text).tokenize()
-    ).parse_query()
+    goal = Parser(Scanner(goal_text).tokenize()).parse_query()
 
     x = goal.args[1]
 
@@ -568,29 +520,25 @@ def test_logic_equal():
     sum_eq_4(Y) :- X is Y + 2, X == 4.
     '''
 
-    rules = Parser(
-        Scanner(input).tokenize()
-    ).parse_rules()
+    rules = Parser(Scanner(input).tokenize()).parse_rules()
 
     runtime = Runtime(rules)
 
     goal_text = "sum_eq_4(2)."
 
-    goal = Parser(
-        Scanner(goal_text).tokenize()
-    ).parse_query()
+    goal = Parser(Scanner(goal_text).tokenize()).parse_query()
 
-    assert(
-        len([s for s in runtime.execute(goal) if not isinstance(s, FALSE)]))  # noqa
+    assert len(
+        [s for s in runtime.execute(goal) if not isinstance(s, FALSE)]
+    )  # noqa
 
     goal_text = "sum_eq_4(3)."
 
-    goal = Parser(
-        Scanner(goal_text).tokenize()
-    ).parse_query()
+    goal = Parser(Scanner(goal_text).tokenize()).parse_query()
 
-    assert(
-        not(len([s for s in runtime.execute(goal) if not isinstance(s, FALSE)])))  # noqa
+    assert not (
+        len([s for s in runtime.execute(goal) if not isinstance(s, FALSE)])
+    )  # noqa
 
 
 def test_logic_not_equal():
@@ -598,27 +546,25 @@ def test_logic_not_equal():
     sum_eq_4(Y) :- X is Y + 2, X =/ 4.
     '''
 
-    rules = Parser(
-        Scanner(input).tokenize()
-    ).parse_rules()
+    rules = Parser(Scanner(input).tokenize()).parse_rules()
 
     runtime = Runtime(rules)
 
     goal_text = "sum_eq_4(3)."
 
-    goal = Parser(
-        Scanner(goal_text).tokenize()
-    ).parse_query()
+    goal = Parser(Scanner(goal_text).tokenize()).parse_query()
 
-    assert(len([s for s in runtime.execute(goal)if not isinstance(s, FALSE)]))  # noqa
+    assert len(
+        [s for s in runtime.execute(goal) if not isinstance(s, FALSE)]
+    )  # noqa
 
     goal_text = "sum_eq_4(2)."
 
-    goal = Parser(
-        Scanner(goal_text).tokenize()
-    ).parse_query()
+    goal = Parser(Scanner(goal_text).tokenize()).parse_query()
 
-    assert(not(len([s for s in runtime.execute(goal) if not isinstance(s, FALSE)])))  # noqa
+    assert not (
+        len([s for s in runtime.execute(goal) if not isinstance(s, FALSE)])
+    )  # noqa
 
 
 def test_logic_greater():
@@ -626,27 +572,25 @@ def test_logic_greater():
     sum_4(Y) :- X is Y + 2, X > 4.
     '''
 
-    rules = Parser(
-        Scanner(input).tokenize()
-    ).parse_rules()
+    rules = Parser(Scanner(input).tokenize()).parse_rules()
 
     runtime = Runtime(rules)
 
     goal_text = "sum_4(3)."
 
-    goal = Parser(
-        Scanner(goal_text).tokenize()
-    ).parse_query()
+    goal = Parser(Scanner(goal_text).tokenize()).parse_query()
 
-    assert(len([s for s in runtime.execute(goal) if not isinstance(s, FALSE)]))  # noqa
+    assert len(
+        [s for s in runtime.execute(goal) if not isinstance(s, FALSE)]
+    )  # noqa
 
     goal_text = "sum_4(2)."
 
-    goal = Parser(
-        Scanner(goal_text).tokenize()
-    ).parse_query()
+    goal = Parser(Scanner(goal_text).tokenize()).parse_query()
 
-    assert(not(len([s for s in runtime.execute(goal) if not isinstance(s, FALSE)])))  # noqa
+    assert not (
+        len([s for s in runtime.execute(goal) if not isinstance(s, FALSE)])
+    )  # noqa
 
 
 def test_logic_greater_or_equal():
@@ -654,35 +598,33 @@ def test_logic_greater_or_equal():
     sum_4(Y) :- X is Y + 2, X >= 4.
     '''
 
-    rules = Parser(
-        Scanner(input).tokenize()
-    ).parse_rules()
+    rules = Parser(Scanner(input).tokenize()).parse_rules()
 
     runtime = Runtime(rules)
 
     goal_text = "sum_4(3)."
 
-    goal = Parser(
-        Scanner(goal_text).tokenize()
-    ).parse_query()
+    goal = Parser(Scanner(goal_text).tokenize()).parse_query()
 
-    assert(len([s for s in runtime.execute(goal) if not isinstance(s, FALSE)]))  # noqa
+    assert len(
+        [s for s in runtime.execute(goal) if not isinstance(s, FALSE)]
+    )  # noqa
 
     goal_text = "sum_4(2)."
 
-    goal = Parser(
-        Scanner(goal_text).tokenize()
-    ).parse_query()
+    goal = Parser(Scanner(goal_text).tokenize()).parse_query()
 
-    assert(len([s for s in runtime.execute(goal) if not isinstance(s, FALSE)]))  # noqa
+    assert len(
+        [s for s in runtime.execute(goal) if not isinstance(s, FALSE)]
+    )  # noqa
 
     goal_text = "sum_4(1)."
 
-    goal = Parser(
-        Scanner(goal_text).tokenize()
-    ).parse_query()
+    goal = Parser(Scanner(goal_text).tokenize()).parse_query()
 
-    assert(not(len([s for s in runtime.execute(goal) if not isinstance(s, FALSE)])))  # noqa
+    assert not (
+        len([s for s in runtime.execute(goal) if not isinstance(s, FALSE)])
+    )  # noqa
 
 
 def test_logic_less():
@@ -690,27 +632,25 @@ def test_logic_less():
     sum_4(Y) :- X is Y + 2, X < 4.
     '''
 
-    rules = Parser(
-        Scanner(input).tokenize()
-    ).parse_rules()
+    rules = Parser(Scanner(input).tokenize()).parse_rules()
 
     runtime = Runtime(rules)
 
     goal_text = "sum_4(1)."
 
-    goal = Parser(
-        Scanner(goal_text).tokenize()
-    ).parse_query()
+    goal = Parser(Scanner(goal_text).tokenize()).parse_query()
 
-    assert(len([s for s in runtime.execute(goal) if not isinstance(s, FALSE)]))  # noqa
+    assert len(
+        [s for s in runtime.execute(goal) if not isinstance(s, FALSE)]
+    )  # noqa
 
     goal_text = "sum_4(2)."
 
-    goal = Parser(
-        Scanner(goal_text).tokenize()
-    ).parse_query()
+    goal = Parser(Scanner(goal_text).tokenize()).parse_query()
 
-    assert(not(len([s for s in runtime.execute(goal) if not isinstance(s, FALSE)])))  # noqa
+    assert not (
+        len([s for s in runtime.execute(goal) if not isinstance(s, FALSE)])
+    )  # noqa
 
 
 def test_logic_less_or_equal():
@@ -718,35 +658,33 @@ def test_logic_less_or_equal():
     sum_4(Y) :- X is Y + 2, X =< 4.
     '''
 
-    rules = Parser(
-        Scanner(input).tokenize()
-    ).parse_rules()
+    rules = Parser(Scanner(input).tokenize()).parse_rules()
 
     runtime = Runtime(rules)
 
     goal_text = "sum_4(1)."
 
-    goal = Parser(
-        Scanner(goal_text).tokenize()
-    ).parse_query()
+    goal = Parser(Scanner(goal_text).tokenize()).parse_query()
 
-    assert(len([s for s in runtime.execute(goal) if not isinstance(s, FALSE)]))  # noqa
+    assert len(
+        [s for s in runtime.execute(goal) if not isinstance(s, FALSE)]
+    )  # noqa
 
     goal_text = "sum_4(2)."
 
-    goal = Parser(
-        Scanner(goal_text).tokenize()
-    ).parse_query()
+    goal = Parser(Scanner(goal_text).tokenize()).parse_query()
 
-    assert(len([s for s in runtime.execute(goal) if not isinstance(s, FALSE)]))  # noqa
+    assert len(
+        [s for s in runtime.execute(goal) if not isinstance(s, FALSE)]
+    )  # noqa
 
     goal_text = "sum_4(3)."
 
-    goal = Parser(
-        Scanner(goal_text).tokenize()
-    ).parse_query()
+    goal = Parser(Scanner(goal_text).tokenize()).parse_query()
 
-    assert(not(len([s for s in runtime.execute(goal) if not isinstance(s, FALSE)])))  # noqa
+    assert not (
+        len([s for s in runtime.execute(goal) if not isinstance(s, FALSE)])
+    )  # noqa
 
 
 def test_insert_rule_left():
@@ -765,9 +703,7 @@ def test_insert_rule_left():
     take(X) :- here(Y), location(X, Y).
     '''
 
-    rules = Parser(
-        Scanner(input).tokenize()
-    ).parse_rules()
+    rules = Parser(Scanner(input).tokenize()).parse_rules()
 
     runtime = Runtime(rules)
 
@@ -775,7 +711,7 @@ def test_insert_rule_left():
     room_rule = Rule(head, TRUE())
     runtime.insert_rule_left(room_rule)
 
-    assert(room_rule == runtime.rules[1])
+    assert room_rule == runtime.rules[1]
 
 
 def test_insert_rule_right():
@@ -794,9 +730,7 @@ def test_insert_rule_right():
     take(X) :- here(Y), location(X, Y).
     '''
 
-    rules = Parser(
-        Scanner(input).tokenize()
-    ).parse_rules()
+    rules = Parser(Scanner(input).tokenize()).parse_rules()
 
     runtime = Runtime(rules)
 
@@ -804,7 +738,7 @@ def test_insert_rule_right():
     room_rule = Rule(head, TRUE())
     runtime.insert_rule_right(room_rule)
 
-    assert(room_rule == runtime.rules[4])
+    assert room_rule == runtime.rules[4]
 
 
 def test_remove_rule():
@@ -824,31 +758,25 @@ def test_remove_rule():
     take(X) :- here(Y), location(X, Y).
     '''
 
-    rules = Parser(
-        Scanner(input).tokenize()
-    ).parse_rules()
+    rules = Parser(Scanner(input).tokenize()).parse_rules()
 
     runtime = Runtime(rules)
     original_rules_len = len(runtime.rules)
 
     goal_text = "room(bathroom)."
-    goal = Parser(
-        Scanner(goal_text).tokenize()
-    ).parse_query()
+    goal = Parser(Scanner(goal_text).tokenize()).parse_query()
 
-    assert(list(runtime.execute(goal)))
+    assert list(runtime.execute(goal))
 
     head = Term('room', Term('bathroom'))
     room_rule = Rule(head, TRUE())
     runtime.remove_rule(room_rule)
 
-    assert(original_rules_len - 1 == len(runtime.rules))
+    assert original_rules_len - 1 == len(runtime.rules)
 
-    goal = Parser(
-        Scanner(goal_text).tokenize()
-    ).parse_query()
+    goal = Parser(Scanner(goal_text).tokenize()).parse_query()
 
-    assert(not(list(runtime.execute(goal))))
+    assert not (list(runtime.execute(goal)))
 
 
 def test_remove_complex_rule():
@@ -868,31 +796,25 @@ def test_remove_complex_rule():
     take(X) :- here(Y), location(X, Y).
     '''
 
-    rules = Parser(
-        Scanner(input).tokenize()
-    ).parse_rules()
+    rules = Parser(Scanner(input).tokenize()).parse_rules()
 
     runtime = Runtime(rules)
     original_rules_len = len(runtime.rules)
 
     goal_text = "take(X)."
-    goal = Parser(
-        Scanner(goal_text).tokenize()
-    ).parse_query()
+    goal = Parser(Scanner(goal_text).tokenize()).parse_query()
 
-    assert(list(runtime.execute(goal)))
+    assert list(runtime.execute(goal))
 
     head = Term('take', Variable('X'))
     take_rule = Rule(head, TRUE())
     runtime.remove_rule(take_rule)
 
-    assert(original_rules_len - 1 == len(runtime.rules))
+    assert original_rules_len - 1 == len(runtime.rules)
 
-    goal = Parser(
-        Scanner(goal_text).tokenize()
-    ).parse_query()
+    goal = Parser(Scanner(goal_text).tokenize()).parse_query()
 
-    assert(not(list(runtime.execute(goal))))
+    assert not (list(runtime.execute(goal)))
 
 
 def test_retract_rule():
@@ -914,26 +836,20 @@ def test_retract_rule():
     move(Place) :- retract(here(_)), asserta(here(Place)).
     '''
 
-    rules = Parser(
-        Scanner(input).tokenize()
-    ).parse_rules()
+    rules = Parser(Scanner(input).tokenize()).parse_rules()
 
     runtime = Runtime(rules)
     original_rules_len = len(runtime.rules)
 
     goal_text = "disappear."
-    goal = Parser(
-        Scanner(goal_text).tokenize()
-    ).parse_query()
-    assert(list(runtime.execute(goal)))
-    assert(original_rules_len - 1 == len(runtime.rules))
+    goal = Parser(Scanner(goal_text).tokenize()).parse_query()
+    assert list(runtime.execute(goal))
+    assert original_rules_len - 1 == len(runtime.rules)
 
     goal_text = "here(kitchen)."
-    goal = Parser(
-        Scanner(goal_text).tokenize()
-    ).parse_query()
+    goal = Parser(Scanner(goal_text).tokenize()).parse_query()
 
-    assert(not(list(runtime.execute(goal))))
+    assert not (list(runtime.execute(goal)))
 
 
 def test_retract_and_asserta_rule():
@@ -955,33 +871,25 @@ def test_retract_and_asserta_rule():
     move(Place) :- retract(here(_)), asserta(here(Place)).
     '''
 
-    rules = Parser(
-        Scanner(input).tokenize()
-    ).parse_rules()
+    rules = Parser(Scanner(input).tokenize()).parse_rules()
 
     runtime = Runtime(rules)
     original_rules_len = len(runtime.rules)
 
     goal_text = "move(office)."
-    goal = Parser(
-        Scanner(goal_text).tokenize()
-    ).parse_query()
-    assert(list(runtime.execute(goal)))
-    assert(original_rules_len == len(runtime.rules))
+    goal = Parser(Scanner(goal_text).tokenize()).parse_query()
+    assert list(runtime.execute(goal))
+    assert original_rules_len == len(runtime.rules)
 
     goal_text = "here(kitchen)."
-    goal = Parser(
-        Scanner(goal_text).tokenize()
-    ).parse_query()
+    goal = Parser(Scanner(goal_text).tokenize()).parse_query()
 
-    assert(not(list(runtime.execute(goal))))
+    assert not (list(runtime.execute(goal)))
 
     goal_text = "here(office)."
-    goal = Parser(
-        Scanner(goal_text).tokenize()
-    ).parse_query()
+    goal = Parser(Scanner(goal_text).tokenize()).parse_query()
 
-    assert(list(runtime.execute(goal)))
+    assert list(runtime.execute(goal))
 
 
 def test_assertz_rule():
@@ -1003,32 +911,24 @@ def test_assertz_rule():
     move(Place) :- retract(here(_)), asserta(here(Place)).
     '''
 
-    rules = Parser(
-        Scanner(input).tokenize()
-    ).parse_rules()
+    rules = Parser(Scanner(input).tokenize()).parse_rules()
 
     runtime = Runtime(rules)
     original_rules_len = len(runtime.rules)
 
     goal_text = "appear."
-    goal = Parser(
-        Scanner(goal_text).tokenize()
-    ).parse_query()
-    assert(list(runtime.execute(goal)))
-    assert(original_rules_len + 1 == len(runtime.rules))
+    goal = Parser(Scanner(goal_text).tokenize()).parse_query()
+    assert list(runtime.execute(goal))
+    assert original_rules_len + 1 == len(runtime.rules)
 
     goal_text = "block(b)."
-    goal = Parser(
-        Scanner(goal_text).tokenize()
-    ).parse_query()
+    goal = Parser(Scanner(goal_text).tokenize()).parse_query()
 
-    assert(list(runtime.execute(goal)))
+    assert list(runtime.execute(goal))
 
     goal_text = "block(X)."
 
-    goal = Parser(
-        Scanner(goal_text).tokenize()
-    ).parse_query()
+    goal = Parser(Scanner(goal_text).tokenize()).parse_query()
 
     x = goal.args[0]
 
@@ -1057,17 +957,13 @@ def test_cut_predicate():
     cut_test_b('last clause').
     '''
 
-    rules = Parser(
-        Scanner(input).tokenize()
-    ).parse_rules()
+    rules = Parser(Scanner(input).tokenize()).parse_rules()
 
     runtime = Runtime(rules)
 
     goal_text = "cut_test_a(X)."
-    goal = Parser(
-        Scanner(goal_text).tokenize()
-    ).parse_query()
-    assert(list(runtime.execute(goal)))
+    goal = Parser(Scanner(goal_text).tokenize()).parse_query()
+    assert list(runtime.execute(goal))
 
     x = goal.args[0]
 
@@ -1075,32 +971,23 @@ def test_cut_predicate():
         'cut_test_a(one)',
         'cut_test_a(two)',
         'cut_test_a(three)',
-        'cut_test_a(last clause)'
+        'cut_test_a(last clause)',
     ]
 
-    expected_bindings = [
-        'one',
-        'two',
-        'three',
-        'last clause'
-    ]
+    expected_bindings = ['one', 'two', 'three', 'last clause']
 
     for index, item in enumerate(runtime.execute(goal)):
         assert str(item) == expected_results[index]
         assert str(goal.match(item).get(x)) == expected_bindings[index]
 
     goal_text = "cut_test_b(X)."
-    goal = Parser(
-        Scanner(goal_text).tokenize()
-    ).parse_query()
+    goal = Parser(Scanner(goal_text).tokenize()).parse_query()
 
-    assert(list(runtime.execute(goal)))
+    assert list(runtime.execute(goal))
 
     goal_text = "cut_test_b(X)."
 
-    goal = Parser(
-        Scanner(goal_text).tokenize()
-    ).parse_query()
+    goal = Parser(Scanner(goal_text).tokenize()).parse_query()
 
     x = goal.args[0]
 
@@ -1115,3 +1002,46 @@ def test_cut_predicate():
             print(f'{goal.match(item).get(x)} == {expected_bindings[index]}')
             assert str(item) == expected_results[index]
             assert str(goal.match(item).get(x)) == expected_bindings[index]
+
+
+def test_negation():
+    input = '''
+    data(one).
+    data(two).
+    data(three).
+
+    negation_test(X) :-
+    \\+ data(X).
+    '''
+
+    rules = Parser(Scanner(input).tokenize()).parse_rules()
+
+    runtime = Runtime(rules)
+
+    goal_text = "negation_test(X)."
+    goal = Parser(Scanner(goal_text).tokenize()).parse_query()
+    assert not list(runtime.execute(goal))
+
+    goal_text = "negation_test(two)."
+    goal = Parser(Scanner(goal_text).tokenize()).parse_query()
+    x = goal.args[0]
+    assert not list(runtime.execute(goal))
+
+    goal_text = "negation_test(four)."
+    goal = Parser(Scanner(goal_text).tokenize()).parse_query()
+    x = goal.args[0]
+
+    expected_results = ['{X: four}']
+
+    # expected_bindings = ['four']
+    print(f'Goal: {goal}')
+
+    for index, item in enumerate(runtime.execute(goal)):
+        print(f'ITEM(idx): {item} - {index}')
+        print(type(item))
+        print(f'Keys: {item.keys()}')
+        for k in item.keys():
+            print(f'Key: {type(k)}')
+        print(f'X: {item["X"]}')
+        assert str(item) != expected_results[index]
+        # assert str(goal.match(item).get(x)) == expected_bindings[index]

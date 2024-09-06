@@ -10,7 +10,17 @@ from .types import (
     TRUE,
     CUT,
 )
-from .builtins import Write, Nl, Tab, Fail, Cut, Retract, AssertA, AssertZ
+from .builtins import (
+    Write,
+    Nl,
+    Tab,
+    Fail,
+    Cut,
+    Retract,
+    AssertA,
+    AssertZ,
+)
+from .expression import Negation
 
 
 class Rule:
@@ -197,14 +207,20 @@ class Runtime:
                     if arith is not None:
                         yield arith
                 else:
-                    for item in body.query(self):
-                        if isinstance(item, CUT):
-                            yield item
-                            return
-                        if not isinstance(item, FALSE):
-                            yield head.substitute(body.match(item))
-                        elif isinstance(item, FALSE):
-                            yield item
+                    if isinstance(body, Negation):
+                        operand = body.operand
+                        results = list(operand.query(self))
+                        if not results:
+                            yield match
+                    else:
+                        for item in body.query(self):
+                            if isinstance(item, CUT):
+                                yield item
+                                return
+                            if not isinstance(item, FALSE):
+                                yield head.substitute(body.match(item))
+                            elif isinstance(item, FALSE):
+                                yield item
 
     def execute(self, query):
         goal = query

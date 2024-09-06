@@ -13,6 +13,7 @@ class TokenType(Enum):
     UNDERSCORE = (auto(),)
     SINGLEQUOTE = (auto(),)
     FAIL = (auto(),)
+    NEGATION = (auto(),)
     WRITE = (auto(),)
     NL = (auto(),)
     TAB = (auto(),)

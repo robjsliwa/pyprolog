@@ -2,7 +2,7 @@ from prolog.token_type import TokenType
 from .interpreter import Conjunction, Rule
 from .types import Arithmetic, Logic, Variable, Term, TRUE, Number, Dot, Bar
 from .builtins import Fail, Write, Nl, Tab, Retract, AssertA, AssertZ, Cut
-from .expression import BinaryExpression, PrimaryExpression
+from .expression import BinaryExpression, PrimaryExpression, Negation
 
 
 def default_error_handler(line, message):
@@ -88,6 +88,10 @@ class Parser:
                     self._peek().line, f'Expected ")" after expression: {expr}'
                 )
             return expr
+        elif self._is_type(token, TokenType.NEGATION):
+            self._advance()
+            operand = self._parse_expression()
+            return Negation(operand)
 
         self._report(
             self._peek().line, f'Expected number or variable but got: {token}'
@@ -141,6 +145,10 @@ class Parser:
         return expr
 
     def _parse_expression(self):
+        if self._token_matches(TokenType.NEGATION):
+            self._advance()  # consume '\+'
+            operand = self._parse_expression()
+            return Negation(operand)
         return self._parse_equality()
 
     def _parse_arithmetic(self, token):
@@ -167,6 +175,7 @@ class Parser:
                 TokenType.ASSERTZ,
                 TokenType.CUT,
                 TokenType.ATOM,
+                TokenType.NEGATION,
             ]
         ):
             self._report(token.line, f'Bad atom name: {token.lexeme}')
@@ -244,6 +253,11 @@ class Parser:
 
             self._advance()
             return Conjunction(args)
+
+        if self._token_matches(TokenType.NEGATION):
+            self._advance()
+            operand = self._parse_term()
+            return Negation(operand)
 
         if self._next_token_matches(
             [
